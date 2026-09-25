@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0F172A"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <ImageView
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_launcher"
+        android:contentDescription="Logo"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ScreenMate AI"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Asisten Layar Pintar &amp; Auto-Click"
+        android:textColor="#94A3B8"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btnStartBubble"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="⚡ Mulai Floating Bubble"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#6366F1"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnStopBubble"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="🛑 Matikan Floating Bubble"
+        android:textColor="#EF4444"
+        android:backgroundTint="#1E293B"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnAccessibility"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="⚙️ Izin Aksesibilitas (Auto-Click)"
+        android:textColor="#CBD5E1"
+        android:backgroundTint="#334155"
+        android:textSize="13sp" />
+
+</LinearLayout>
