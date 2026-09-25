@@ -648,53 +648,75 @@
         });
 
         // 4. ANALISIS TAUTAN GOOGLE DOCS (JIKA USER INPUT LINK)
-        btnAnalyzeDocsLink.addEventListener('click', async () => {
+        btnAnalyzeDocsLink.addEventListener('click', () => {
             const url = docsUrlInput.value.trim();
             if (!url) {
                 alert("Masukkan link Google Docs terlebih dahulu!");
                 return;
             }
 
-            const docIdMatch = url.match(/\/document\/d\/([a-zA-Z0-9-_]+)/);
-            if (!docIdMatch) {
-                alert("Format URL Google Docs tidak valid. Pastikan format: https://docs.google.com/document/d/.../edit");
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                alert("Masukkan Gemini API Key di ikon ⚙️ terlebih dahulu.");
+                settingsBox.style.display = 'flex';
                 return;
             }
 
-            const docId = docIdMatch[1];
-            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
-            
-            showLoading("Mengambil teks dokumen Google Docs...");
+            showLoading("Mengunduh isi dokumen Google Docs...");
 
-            try {
-                const res = await fetch(exportUrl);
-                if (!res.ok) {
-                    throw new Error("Dokumen tidak dapat diakses secara publik. Pastikan pengaturan share dokumen disetel ke 'Anyone with the link can view' (Siapa saja yang memiliki link).");
-                }
-                const docText = await res.text();
-                
-                showLoading("Menganalisis isi dokumen dengan Gemini AI...");
-                const apiKey = localStorage.getItem('gemini_api_key');
-                if (!apiKey) {
-                    hideLoading();
-                    alert("Masukkan Gemini API Key di ikon ⚙️ terlebih dahulu.");
-                    settingsBox.style.display = 'flex';
-                    return;
-                }
-
-                const prompt = `Analisis isi dokumen Google Docs berikut ini:
-1. Rangkum inti sari dokumen secara padat dan terstruktur.
-2. Jika di dalam dokumen ada soal-soal latihan atau pertanyaan, berikan kunci jawaban lengkap beserta penjelasannya!
-
-Isi Dokumen:
-${docText.substring(0, 15000)}`;
-
-                await callGeminiText(prompt, apiKey);
-            } catch(e) {
+            if (window.Android && window.Android.fetchUrlContent) {
+                // Unduh tanpa batasan CORS via Android Native
+                window.Android.fetchUrlContent(url);
+            } else {
                 hideLoading();
-                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Gagal Analisis Docs]:</span> ${e.message}<br><br><small style="color:#9ca3af;">Tips: Anda juga bisa cukup buka dokumen Google Docs di layar HP Anda, lalu klik tombol <b>"SCAN DOKUMEN DI LAYAR"</b>!</small>`;
+                alert("Jalankan melalui aplikasi Android ScreenMate AI.");
             }
         });
+
+        // CALLBACK KETIKA DOKUMEN GOOGLE DOCS BERHASIL DIAMBIL
+        window.onUrlContentFetchedBase64 = function(base64Text) {
+            try {
+                let binaryStr = atob(base64Text);
+                let bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                }
+                let docText = new TextDecoder('utf-8').decode(bytes);
+                processDocsAssignment(docText);
+            } catch(e) {
+                processDocsAssignment(atob(base64Text));
+            }
+        };
+
+        window.onUrlFetchError = function(errMsg) {
+            hideLoading();
+            resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Gagal Mengunduh Dokumen]:</span> ${errMsg}<br><br>
+<small style="color:#9ca3af;">
+<b>Tips Agar Link Google Docs Terbaca:</b><br>
+1. Di Google Docs, klik <b>Bagikan (Share)</b> ➔ ubah akses menjadi <b>"Siapa saja yang memiliki link" (Anyone with the link)</b>.<br>
+2. <i>Atau cara instan:</i> Buka dokumen tersebut di layar HP Anda, lalu klik tombol <b>"SCAN DOKUMEN DI LAYAR"</b>!
+</small>`;
+        };
+
+        async function processDocsAssignment(docText) {
+            showLoading("Gemini 3.8 Flash sedang MENGERJAKAN semua soal di dokumen...");
+
+            const apiKey = localStorage.getItem('gemini_api_key');
+            const prompt = `Anda adalah asisten cerdas pengerjaan tugas & ujian.
+Tugas Anda adalah MEMBACA SELURUH DOKUMEN INI dan MENGERJAKAN SEMUA PERTANYAAN/TUGAS YANG ADA DI DALAMNYA SECARA LENGKAP DAN TUNTAS.
+
+ATURAN FORMAT PENGERJAAN:
+1. Kerjakan berurutan nomor per nomor (No. 1, No. 2, dst).
+2. Tuliskan teks soalnya secara ringkas.
+3. Berikan [KUNCI JAWABAN TEPAT]: (Sebutkan opsi A/B/C/D/E jika pilihan ganda beserta kalimat jawabannya).
+4. Berikan [PEMBAHASAN / CARA PENGERJAAN]: Uraikan langkah pengerjaan atau alasan jawaban secara ilmiah dan padat.
+5. Jika dokumen berupa materi bacaan/rangkuman tanpa soal, buatkan ringkasan poin-poin terpentingnya.
+
+ISI DOKUMEN GOOGLE DOCS:
+${docText.substring(0, 25000)}`;
+
+            await callGeminiText(prompt, apiKey);
+        }
 
         // 5. PROSES ANALISIS KE AI (DIRECT GEMINI API)
         async function processAIAnalysis(base64Image, mode) {

@@ -252,6 +252,63 @@ public class FloatingService extends Service {
         }
 
         @JavascriptInterface
+        public void fetchUrlContent(final String urlString) {
+            new Thread(() -> {
+                try {
+                    String targetUrl = urlString.trim();
+                    // Konversi link Google Docs ke export format txt
+                    java.util.regex.Pattern docPattern = java.util.regex.Pattern.compile("/document/d/([a-zA-Z0-9-_]+)");
+                    java.util.regex.Matcher matcher = docPattern.matcher(targetUrl);
+                    if (matcher.find()) {
+                        String docId = matcher.group(1);
+                        targetUrl = "https://docs.google.com/document/d/" + docId + "/export?format=txt";
+                    }
+
+                    java.net.URL url = new java.net.URL(targetUrl);
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setInstanceFollowRedirects(true);
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0");
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(20000);
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == 301 || responseCode == 302 || responseCode == 303 || responseCode == 307) {
+                        String redirectUrl = conn.getHeaderField("Location");
+                        if (redirectUrl != null) {
+                            conn = (java.net.HttpURLConnection) new java.net.URL(redirectUrl).openConnection();
+                            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0");
+                        }
+                    }
+
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append("\n");
+                        if (sb.length() > 60000) break;
+                    }
+                    reader.close();
+
+                    final String rawText = sb.toString();
+                    if (rawText.trim().isEmpty()) {
+                        throw new Exception("Dokumen kosong atau memerlukan login akun Google.");
+                    }
+
+                    final String base64Text = Base64.encodeToString(rawText.getBytes("UTF-8"), Base64.NO_WRAP);
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        floatingPanel.evaluateJavascript("window.onUrlContentFetchedBase64('" + base64Text + "');", null);
+                    });
+                } catch (final Exception e) {
+                    final String err = e.getMessage() != null ? e.getMessage() : "Gagal mengambil isi link.";
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        floatingPanel.evaluateJavascript("window.onUrlFetchError('" + err.replace("'", "\\'") + "');", null);
+                    });
+                }
+            }).start();
+        }
+
+        @JavascriptInterface
         public void performAutoClick(float normalizedX, float normalizedY) {
             if (AutoClickService.isRunning()) {
                 android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
