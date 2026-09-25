@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-card: rgba(17, 24, 39, 0.96);
+            --bg-card: rgba(17, 24, 39, 0.97);
             --border-card: rgba(255, 255, 255, 0.12);
             --primary: #6366f1;
             --primary-hover: #4f46e5;
@@ -45,7 +45,7 @@
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            padding: 12px;
+            padding: 10px;
             animation: fadeIn 0.2s ease-out;
         }
 
@@ -54,10 +54,10 @@
             to { opacity: 1; }
         }
 
-        /* FLOATING CARD CONTAINER (BOTTOM SHEET / FLOATING) */
+        /* FLOATING CARD CONTAINER */
         .panel-card {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             max-height: 88vh;
             background: var(--bg-card);
             border: 1px solid var(--border-card);
@@ -76,7 +76,7 @@
 
         /* HEADER */
         .card-header {
-            padding: 14px 18px;
+            padding: 12px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -89,7 +89,7 @@
             align-items: center;
             gap: 8px;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #fff;
         }
 
@@ -100,7 +100,6 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .header-actions {
@@ -134,11 +133,11 @@
 
         /* BODY */
         .card-body {
-            padding: 16px;
+            padding: 14px 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
         /* MODE SELECTION */
@@ -155,16 +154,13 @@
             background: var(--card-sub);
             border: 1px solid var(--border-card);
             color: var(--text-sub);
-            padding: 7px 14px;
-            border-radius: 20px;
-            font-size: 0.78rem;
+            padding: 7px 13px;
+            border-radius: 18px;
+            font-size: 0.76rem;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
         .mode-chip.active {
             background: var(--primary);
@@ -173,25 +169,92 @@
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         }
 
-        /* MAIN ACTION BUTTON: ANALISIS LAYAR LANGSUNG */
+        /* SPECIAL TAB BANNERS */
+        .mode-banner {
+            display: none;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            color: #c7d2fe;
+            line-height: 1.4;
+        }
+
+        /* DOCS LINK INPUT */
+        .docs-input-group {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            padding: 10px 12px;
+            border-radius: 12px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .input-text {
+            flex: 1;
+            background: #1f2937;
+            border: 1px solid var(--border-card);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+        .input-text:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-small {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* AUTO-CLICK OPTIONS IN WORDWALL */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            color: #a7f3d0;
+            font-weight: 600;
+        }
+
+        /* MAIN BUTTON */
         .btn-scan-screen {
             background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
             color: #fff;
             border: none;
-            padding: 14px 18px;
+            padding: 13px 18px;
             border-radius: 14px;
-            font-weight: 700;
-            font-size: 0.95rem;
+            font-weight: 800;
+            font-size: 0.92rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-            transition: all 0.2s;
         }
         .btn-scan-screen:active {
-            transform: scale(0.97);
+            transform: scale(0.98);
         }
 
         .btn-auto-click {
@@ -200,7 +263,7 @@
             border: none;
             padding: 13px 18px;
             border-radius: 14px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 0.92rem;
             cursor: pointer;
             display: none;
@@ -211,7 +274,7 @@
             animation: pulseGreen 1.5s infinite;
         }
         @keyframes pulseGreen {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
             70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
@@ -223,7 +286,7 @@
             overflow: hidden;
             border: 1px solid var(--border-card);
             display: none;
-            max-height: 120px;
+            max-height: 110px;
             background: #000;
         }
         .preview-box img {
@@ -251,19 +314,19 @@
             display: none;
             align-items: center;
             gap: 12px;
-            padding: 14px;
+            padding: 12px 14px;
             background: rgba(99, 102, 241, 0.15);
             border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 14px;
-            font-size: 0.85rem;
+            border-radius: 12px;
+            font-size: 0.82rem;
             color: #c7d2fe;
             font-weight: 600;
         }
 
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(99, 102, 241, 0.3);
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(99, 102, 241, 0.3);
             border-top-color: #818cf8;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -275,10 +338,10 @@
             background: var(--card-sub);
             border: 1px solid var(--border-card);
             border-radius: 14px;
-            padding: 14px;
+            padding: 12px 14px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .result-header {
@@ -293,8 +356,8 @@
         }
 
         .result-content {
-            font-size: 0.88rem;
-            line-height: 1.6;
+            font-size: 0.86rem;
+            line-height: 1.55;
             color: #f3f4f6;
             white-space: pre-wrap;
             max-height: 220px;
@@ -305,47 +368,32 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border-card);
             color: var(--text-sub);
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 6px;
             font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
         }
 
-        /* SETTINGS MODAL / CONFIG CARD */
+        /* SETTINGS BOX */
         .settings-box {
             display: none;
             background: #111827;
             border: 1px solid rgba(99, 102, 241, 0.4);
             border-radius: 14px;
-            padding: 14px;
+            padding: 12px;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
-
         .settings-title {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: #a5b4fc;
         }
 
-        .input-text {
-            width: 100%;
-            background: #1f2937;
-            border: 1px solid var(--border-card);
-            color: #fff;
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-size: 0.82rem;
-            outline: none;
-        }
-        .input-text:focus {
-            border-color: var(--primary);
-        }
-
         /* FOOTER ACTIONS */
         .card-footer {
-            padding: 12px 16px;
+            padding: 10px 16px;
             border-top: 1px solid var(--border-card);
             display: flex;
             gap: 8px;
@@ -357,7 +405,7 @@
             background: #374151;
             color: #fff;
             border: none;
-            padding: 10px;
+            padding: 9px;
             border-radius: 10px;
             font-size: 0.82rem;
             font-weight: 600;
@@ -368,7 +416,7 @@
             background: rgba(239, 68, 68, 0.15);
             color: #f87171;
             border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 10px 14px;
+            padding: 9px 12px;
             border-radius: 10px;
             font-size: 0.82rem;
             font-weight: 600;
@@ -378,7 +426,7 @@
 </head>
 <body>
 
-    <!-- OVERLAY BACKDROP (KETUK DI LUAR KARTU AKAN MENUTUP PANEL) -->
+    <!-- OVERLAY BACKDROP -->
     <div class="overlay-backdrop" id="overlayBackdrop">
         <div class="panel-card" id="panelCard">
             <!-- HEADER -->
@@ -388,41 +436,57 @@
                     <span class="brand-badge" id="modeBadge">Jawab Soal</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-icon" id="btnToggleSettings" title="Pengaturan API / Server">⚙️</button>
+                    <button class="btn-icon" id="btnToggleSettings" title="Pengaturan API">⚙️</button>
                     <button class="btn-icon btn-close" id="btnCloseTop" title="Tutup Panel">✕</button>
                 </div>
             </div>
 
             <!-- BODY -->
             <div class="card-body">
-                <!-- SETTINGS MODAL (API KEY & SERVER) -->
+                <!-- SETTINGS MODAL -->
                 <div class="settings-box" id="settingsBox">
-                    <div class="settings-title">⚙️ Konfigurasi AI &amp; Server</div>
-                    <label style="font-size: 0.72rem; color: var(--text-sub);">Google Gemini API Key (aistudio.google.com):</label>
+                    <div class="settings-title">⚙️ Konfigurasi API Google Gemini</div>
+                    <label style="font-size: 0.7rem; color: var(--text-sub);">Gemini API Key (Gratis di aistudio.google.com):</label>
                     <input type="password" id="inputApiKey" class="input-text" placeholder="AIzaSy...">
-                    <label style="font-size: 0.72rem; color: var(--text-sub);">Atau URL Server Backend PC (opsional):</label>
-                    <input type="text" id="inputServerUrl" class="input-text" placeholder="http://192.168.1.10:3000">
-                    <button class="btn-hide-panel" id="btnSaveSettings" style="background: var(--primary);">Simpan Pengaturan</button>
+                    <button class="btn-small" id="btnSaveSettings" style="width: 100%;">Simpan API Key</button>
                 </div>
 
                 <!-- MODE SELECTOR -->
                 <div class="modes-scroll" id="modeSelector">
                     <div class="mode-chip active" data-mode="Jawab Soal">🎯 Jawab Soal</div>
                     <div class="mode-chip" data-mode="Wordwall Assist">🎮 Wordwall Auto-Click</div>
-                    <div class="mode-chip" data-mode="Google Docs">📄 Google Docs / Bacaan</div>
+                    <div class="mode-chip" data-mode="Google Docs">📄 Google Docs</div>
                     <div class="mode-chip" data-mode="Jelaskan Soal">💡 Penjelasan</div>
                     <div class="mode-chip" data-mode="Translate">🌐 Terjemah</div>
                 </div>
 
+                <!-- WORDWALL SPECIFIC BANNER & TOGGLE -->
+                <div class="mode-banner" id="wordwallBanner">
+                    🎮 <b>Mode Wordwall:</b> Buka game Wordwall di layar Anda, lalu tekan tombol <b>"ANALISIS LAYAR"</b> di bawah. AI akan mencari kartu jawaban yang benar dan otomatis mengetuknya.
+                    <div class="toggle-row" style="margin-top: 8px;">
+                        <span>⚡ Langsung Auto-Click Otomatis</span>
+                        <input type="checkbox" id="checkDirectClick" checked style="width: 18px; height: 18px; accent-color: #10b981;">
+                    </div>
+                </div>
+
+                <!-- GOOGLE DOCS LINK INPUT -->
+                <div class="docs-input-group" id="docsInputGroup">
+                    <div style="font-size: 0.74rem; color: #cbd5e1; font-weight: 600;">📄 Masukkan Tautan Google Docs (atau scan layar langsung):</div>
+                    <div class="input-row">
+                        <input type="url" id="docsUrlInput" class="input-text" placeholder="https://docs.google.com/document/d/...">
+                        <button class="btn-small" id="btnAnalyzeDocsLink">Analisis Link</button>
+                    </div>
+                </div>
+
                 <!-- TOMBOL UTAMA: LANGSUNG SCAN LAYAR HP SAAT INI -->
                 <button class="btn-scan-screen" id="btnScanScreen">
-                    <span style="font-size: 1.2rem;">📸</span>
-                    <span>ANALISIS LAYAR INI SEKARANG</span>
+                    <span style="font-size: 1.15rem;">📸</span>
+                    <span id="scanBtnText">ANALISIS LAYAR INI SEKARANG</span>
                 </button>
 
-                <!-- TOMBOL AUTO-CLICK JAWABAN (OTOMATIS MUNCUL JIKA TERDETEKSI KARTU WORDWALL/PILIHAN) -->
+                <!-- TOMBOL AUTO-CLICK JAWABAN (MUNCUL OTOMATIS) -->
                 <button class="btn-auto-click" id="btnAutoClick">
-                    <span>⚡ KETUK OTOMATIS JAWABAN DI LAYAR</span>
+                    <span id="autoClickText">⚡ KETUK OTOMATIS JAWABAN DI LAYAR</span>
                 </button>
 
                 <!-- PREVIEW BOX -->
@@ -440,10 +504,10 @@
                 <!-- HASIL JAWABAN -->
                 <div class="result-wrapper">
                     <div class="result-header">
-                        <span>Hasil Analisis AI</span>
+                        <span id="resultTitle">Hasil Analisis AI</span>
                         <button class="btn-copy" id="btnCopyResult">Copy</button>
                     </div>
-                    <div class="result-content" id="resultContent">Buka soal/game di HP Anda, lalu klik tombol <b>"ANALISIS LAYAR INI SEKARANG"</b> di atas.</div>
+                    <div class="result-content" id="resultContent">Buka soal / game / dokumen di layar HP Anda, lalu tekan tombol <b>"ANALISIS LAYAR INI SEKARANG"</b>.</div>
                 </div>
             </div>
 
@@ -459,14 +523,15 @@
     <script>
         let currentMode = 'Jawab Soal';
         let detectedCoords = null;
-        let currentBase64 = null;
 
         const backdrop = document.getElementById('overlayBackdrop');
         const btnCloseTop = document.getElementById('btnCloseTop');
         const btnCloseBottom = document.getElementById('btnCloseBottom');
         const btnStopApp = document.getElementById('btnStopApp');
         const btnScanScreen = document.getElementById('btnScanScreen');
+        const scanBtnText = document.getElementById('scanBtnText');
         const btnAutoClick = document.getElementById('btnAutoClick');
+        const autoClickText = document.getElementById('autoClickText');
         const previewBox = document.getElementById('previewBox');
         const previewImg = document.getElementById('previewImg');
         const btnRemovePreview = document.getElementById('btnRemovePreview');
@@ -475,16 +540,21 @@
         const btnCopyResult = document.getElementById('btnCopyResult');
         const modeBadge = document.getElementById('modeBadge');
         
+        // Mode specific elements
+        const wordwallBanner = document.getElementById('wordwallBanner');
+        const checkDirectClick = document.getElementById('checkDirectClick');
+        const docsInputGroup = document.getElementById('docsInputGroup');
+        const docsUrlInput = document.getElementById('docsUrlInput');
+        const btnAnalyzeDocsLink = document.getElementById('btnAnalyzeDocsLink');
+
         // Settings elements
         const btnToggleSettings = document.getElementById('btnToggleSettings');
         const settingsBox = document.getElementById('settingsBox');
         const inputApiKey = document.getElementById('inputApiKey');
-        const inputServerUrl = document.getElementById('inputServerUrl');
         const btnSaveSettings = document.getElementById('btnSaveSettings');
 
         // Load saved settings
         inputApiKey.value = localStorage.getItem('gemini_api_key') || '';
-        inputServerUrl.value = localStorage.getItem('server_backend_url') || '';
 
         btnToggleSettings.addEventListener('click', () => {
             settingsBox.style.display = settingsBox.style.display === 'flex' ? 'none' : 'flex';
@@ -492,9 +562,8 @@
 
         btnSaveSettings.addEventListener('click', () => {
             localStorage.setItem('gemini_api_key', inputApiKey.value.trim());
-            localStorage.setItem('server_backend_url', inputServerUrl.value.trim());
             settingsBox.style.display = 'none';
-            alert('Pengaturan berhasil disimpan!');
+            alert('API Key berhasil disimpan!');
         });
 
         // Mode Selector Chips
@@ -505,6 +574,18 @@
                 currentMode = chip.getAttribute('data-mode');
                 modeBadge.innerText = currentMode;
                 btnAutoClick.style.display = 'none';
+
+                // Tampilkan banner khusus sesuai mode
+                wordwallBanner.style.display = (currentMode === 'Wordwall Assist') ? 'block' : 'none';
+                docsInputGroup.style.display = (currentMode === 'Google Docs') ? 'flex' : 'none';
+
+                if (currentMode === 'Wordwall Assist') {
+                    scanBtnText.innerText = "🎯 DETEKSI KARTU WORDWALL";
+                } else if (currentMode === 'Google Docs') {
+                    scanBtnText.innerText = "📄 SCAN DOKUMEN DI LAYAR";
+                } else {
+                    scanBtnText.innerText = "ANALISIS LAYAR INI SEKARANG";
+                }
             });
         });
 
@@ -540,17 +621,15 @@
             showLoading("Menangkap layar HP Anda...");
 
             if (window.Android && window.Android.captureScreenNow) {
-                // Panggil fungsi native Android untuk tangkap layar tanpa dialog
                 window.Android.captureScreenNow(currentMode);
             } else {
                 hideLoading();
-                alert("Jalankan di aplikasi Android ScreenMate AI.");
+                alert("Buka melalui aplikasi Android ScreenMate AI.");
             }
         });
 
         // 2. CALLBACK DARI ANDROID SAAT SCREENSHOT BERHASIL DIAMBIL
         window.onScreenCaptured = function(base64Image, mode) {
-            currentBase64 = base64Image;
             previewImg.src = "data:image/jpeg;base64," + base64Image;
             previewBox.style.display = 'block';
             processAIAnalysis(base64Image, mode);
@@ -559,160 +638,245 @@
         // 3. CALLBACK JIKA GAGAL TANGKAP LAYAR
         window.onCaptureError = function(errorMsg) {
             hideLoading();
-            resultContent.innerHTML = `<span style="color:#ef4444;">⚠️ [Gagal Tangkap Layar]:</span> ${errorMsg}<br><br><small style="color:#9ca3af;">Pastikan Layanan Aksesibilitas 'ScreenMate AI' sudah AKTIF di Pengaturan HP Anda.</small>`;
+            resultContent.innerHTML = `<span style="color:#ef4444;">⚠️ [Gagal Tangkap Layar]:</span> ${errorMsg}<br><br><small style="color:#9ca3af;">Pastikan izin Aksesibilitas 'ScreenMate AI' aktif di Pengaturan HP Anda.</small>`;
         };
 
         btnRemovePreview.addEventListener('click', () => {
             previewBox.style.display = 'none';
             previewImg.src = '';
-            currentBase64 = null;
             btnAutoClick.style.display = 'none';
         });
 
-        // 4. PROSES ANALISIS KE AI (DIRECT GEMINI API / BACKEND)
+        // 4. ANALISIS TAUTAN GOOGLE DOCS (JIKA USER INPUT LINK)
+        btnAnalyzeDocsLink.addEventListener('click', async () => {
+            const url = docsUrlInput.value.trim();
+            if (!url) {
+                alert("Masukkan link Google Docs terlebih dahulu!");
+                return;
+            }
+
+            const docIdMatch = url.match(/\/document\/d\/([a-zA-Z0-9-_]+)/);
+            if (!docIdMatch) {
+                alert("Format URL Google Docs tidak valid. Pastikan format: https://docs.google.com/document/d/.../edit");
+                return;
+            }
+
+            const docId = docIdMatch[1];
+            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
+            
+            showLoading("Mengambil teks dokumen Google Docs...");
+
+            try {
+                const res = await fetch(exportUrl);
+                if (!res.ok) {
+                    throw new Error("Dokumen tidak dapat diakses secara publik. Pastikan pengaturan share dokumen disetel ke 'Anyone with the link can view' (Siapa saja yang memiliki link).");
+                }
+                const docText = await res.text();
+                
+                showLoading("Menganalisis isi dokumen dengan Gemini AI...");
+                const apiKey = localStorage.getItem('gemini_api_key');
+                if (!apiKey) {
+                    hideLoading();
+                    alert("Masukkan Gemini API Key di ikon ⚙️ terlebih dahulu.");
+                    settingsBox.style.display = 'flex';
+                    return;
+                }
+
+                const prompt = `Analisis isi dokumen Google Docs berikut ini:
+1. Rangkum inti sari dokumen secara padat dan terstruktur.
+2. Jika di dalam dokumen ada soal-soal latihan atau pertanyaan, berikan kunci jawaban lengkap beserta penjelasannya!
+
+Isi Dokumen:
+${docText.substring(0, 15000)}`;
+
+                await callGeminiText(prompt, apiKey);
+            } catch(e) {
+                hideLoading();
+                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Gagal Analisis Docs]:</span> ${e.message}<br><br><small style="color:#9ca3af;">Tips: Anda juga bisa cukup buka dokumen Google Docs di layar HP Anda, lalu klik tombol <b>"SCAN DOKUMEN DI LAYAR"</b>!</small>`;
+            }
+        });
+
+        // 5. PROSES ANALISIS KE AI (DIRECT GEMINI API)
         async function processAIAnalysis(base64Image, mode) {
-            showLoading(`Menganalisis soal (${mode}) dengan AI...`);
+            showLoading(`Menganalisis (${mode}) dengan Gemini 3.8 Flash...`);
             
             const apiKey = localStorage.getItem('gemini_api_key');
-            const serverUrl = localStorage.getItem('server_backend_url');
+            if (!apiKey) {
+                hideLoading();
+                resultContent.innerHTML = `<span style="color:#f59e0b;">🔑 Masukkan Gemini API Key:</span><br>
+Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis Anda (didapatkan di <a href="https://aistudio.google.com" target="_blank" style="color:#818cf8;">aistudio.google.com</a>) agar AI bisa langsung menjawab.`;
+                settingsBox.style.display = 'flex';
+                return;
+            }
 
             // Susun prompt berdasarkan mode
             let systemPrompt = "";
             if (mode === 'Wordwall Assist') {
-                systemPrompt = `Analisis screenshot game kuis Wordwall ini secara teliti.
-1. Baca soal yang tertulis di bagian atas layar.
-2. Cari kartu pilihan jawaban yang BENAR.
-3. Tentukan koordinat titik tengah kartu yang benar dalam skala 0 sampai 1000:
-   - centerX: posisi horizontal (0 = paling kiri, 1000 = paling kanan)
-   - centerY: posisi vertikal (0 = paling atas, 1000 = paling bawah)
-4. Kembalikan HANYA format JSON murni tanpa markdown:
-{"question":"soal","answer":"jawaban benar","cardColor":"warna kartu","centerX":500,"centerY":750,"explanation":"alasan"}`;
+                systemPrompt = `Anda adalah asisten visual game kuis Wordwall.
+Analisis gambar tangkapan layar permainan Wordwall ini secara teliti.
+1. Baca teks pertanyaan di bagian atas.
+2. Temukan KARTU JAWABAN YANG BENAR di antara pilihan yang ada di layar.
+3. Tentukan koordinat titik tengah persis kartu jawaban yang benar dalam skala 0 sampai 1000:
+   - centerX: posisi horizontal (0 = paling kiri layar, 1000 = paling kanan layar)
+   - centerY: posisi vertikal (0 = paling atas layar, 1000 = paling bawah layar)
+   (Catatan: Pastikan centerX & centerY tepat berada di tengah kartu jawaban).
+4. Berikan output dengan format JSON:
+{"question":"soal yang tertera","answer":"teks jawaban kartu benar","cardColor":"warna kartu (Kuning/Biru/Merah/dll)","centerX":500,"centerY":750,"explanation":"alasan singkat"}`;
             } else if (mode === 'Google Docs') {
-                systemPrompt = `Ekstrak dan analisis teks dari Google Docs / dokumen pada gambar layar ini.
-1. Berikan ringkasan poin-poin utama isi dokumen.
-2. Jika ada pertanyaan atau instruksi di dokumen, berikan jawabannya secara langsung dan padat.`;
+                systemPrompt = `Ekstrak dan analisis teks dokumen Google Docs / buku / soal bacaan pada gambar layar ini.
+1. Jika ada pertanyaan atau latihan soal di dokumen, berikan [JAWABAN TEPAT] beserta pembahasannya.
+2. Jika dokumen berupa bacaan/catatan, berikan [RINGKASAN POIN PENTING].`;
             } else if (mode === 'Jelaskan Soal') {
-                systemPrompt = `Jelaskan materi dan langkah demi langkah penyelesaian soal pada gambar layar ini dengan bahasa yang sangat mudah dimengerti.`;
+                systemPrompt = `Jelaskan materi dan langkah demi langkah penyelesaian soal pada gambar layar ini secara mendalam agar sangat mudah dipahami.`;
             } else if (mode === 'Translate') {
                 systemPrompt = `Terjemahkan seluruh teks pada gambar layar ini ke Bahasa Indonesia yang akurat dan natural.`;
             } else {
                 // Jawab Soal
                 systemPrompt = `Analisis soal pada gambar layar ini.
-1. Berikan [JAWABAN TEPAT]: (sebutkan opsi A/B/C/D/E jika pilihan ganda beserta teksnya).
-2. [PENJELASAN RINGKAS]: Rumus dan langkah pengerjaan singkat.
+1. [JAWABAN TEPAT]: Sebutkan opsi (A/B/C/D/E jika pilihan ganda) beserta teks jawabannya secara jelas.
+2. [PEMBAHASAN RINGKAS]: Uraikan rumus atau langkah pengerjaan singkat.
 3. [TINGKAT KEYAKINAN]: 100%`;
             }
 
-            try {
-                // Jalur 1: Jika ada URL server backend
-                if (serverUrl) {
-                    const endpoint = mode === 'Wordwall Assist' ? `${serverUrl}/api/wordwall-assist` : `${serverUrl}/api/analyze`;
-                    const blob = await (await fetch("data:image/jpeg;base64," + base64Image)).blob();
-                    const fd = new FormData();
-                    fd.append('screenshot', blob, 'screen.jpg');
-                    fd.append('mode', mode);
+            // Model prioritas terbaru (gemini-3.8-flash)
+            const candidateModels = [
+                'gemini-3.8-flash',
+                'gemini-3-flash-preview',
+                'gemini-2.5-flash',
+                'gemini-1.5-flash'
+            ];
 
-                    const res = await fetch(endpoint, { method: 'POST', body: fd });
-                    const d = await res.json();
-                    handleAiResponse(d, mode);
-                    return;
-                }
+            const bodyPayload = {
+                contents: [{
+                    parts: [
+                        { inline_data: { mime_type: "image/jpeg", data: base64Image } },
+                        { text: systemPrompt }
+                    ]
+                }]
+            };
 
-                // Jalur 2: Direct Gemini API (Standar & Mandiri di HP)
-                if (!apiKey) {
-                    hideLoading();
-                    resultContent.innerHTML = `<span style="color:#f59e0b;">🔑 Masukkan Gemini API Key:</span><br>
-Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis Anda (didapatkan dari <a href="https://aistudio.google.com" target="_blank" style="color:#818cf8;">aistudio.google.com</a>) agar asisten bisa langsung menganalisis layar.`;
-                    settingsBox.style.display = 'flex';
-                    return;
-                }
+            let responseData = null;
+            let lastErrMsg = '';
 
-                // Panggil Gemini API (Mengutamakan gemini-3.8-flash sesuai rekomendasi resmi)
-                const candidateModels = [
-                    'gemini-3.8-flash',
-                    'gemini-3-flash-preview',
-                    'gemini-2.5-flash',
-                    'gemini-1.5-flash'
-                ];
+            for (const model of candidateModels) {
+                try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyPayload)
+                    });
 
-                const bodyPayload = {
-                    contents: [{
-                        parts: [
-                            { inline_data: { mime_type: "image/jpeg", data: base64Image } },
-                            { text: systemPrompt }
-                        ]
-                    }]
-                };
-
-                let responseData = null;
-                let lastErrMsg = '';
-
-                for (const model of candidateModels) {
-                    try {
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                        const res = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(bodyPayload)
-                        });
-
-                        if (res.ok) {
-                            responseData = await res.json();
-                            break;
-                        } else {
-                            const errJson = await res.json();
-                            lastErrMsg = errJson.error ? errJson.error.message : `HTTP ${res.status}`;
-                        }
-                    } catch (e) {
-                        lastErrMsg = e.message;
+                    if (res.ok) {
+                        responseData = await res.json();
+                        break;
+                    } else {
+                        const errJson = await res.json();
+                        lastErrMsg = errJson.error ? errJson.error.message : `HTTP ${res.status}`;
                     }
+                } catch (e) {
+                    lastErrMsg = e.message;
                 }
-
-                if (!responseData) {
-                    throw new Error(lastErrMsg || 'Gagal menghubungi server Gemini AI.');
-                }
-
-                const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
-                handleAiResponse({ analysis: rawText }, mode);
-
-            } catch (err) {
-                hideLoading();
-                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Error Analisis]:</span> ${err.message}<br><br><small style="color:#9ca3af;">Periksa API Key di tombol ⚙️ atau pastikan koneksi internet aktif.</small>`;
             }
+
+            if (!responseData) {
+                hideLoading();
+                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Error Analisis]:</span> ${lastErrMsg}<br><br><small style="color:#9ca3af;">Periksa koneksi internet atau perbarui API Key di tombol ⚙️.</small>`;
+                return;
+            }
+
+            const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
+            handleAiResponse(rawText, mode);
         }
 
-        function handleAiResponse(data, mode) {
+        // Panggil teks langsung (misal untuk Docs link)
+        async function callGeminiText(promptText, apiKey) {
+            const candidateModels = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-1.5-flash'];
+            const bodyPayload = { contents: [{ parts: [{ text: promptText }] }] };
+            
+            for (const model of candidateModels) {
+                try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyPayload)
+                    });
+                    if (res.ok) {
+                        const d = await res.json();
+                        hideLoading();
+                        resultContent.innerHTML = formatText(d.candidates?.[0]?.content?.parts?.[0]?.text || "Dokumen dianalisis.");
+                        return;
+                    }
+                } catch(e) {}
+            }
             hideLoading();
-            let text = data.analysis || "";
+            resultContent.innerHTML = `<span style="color:#ef4444;">Gagal menganalisis dokumen via AI.</span>`;
+        }
+
+        function handleAiResponse(rawText, mode) {
+            hideLoading();
 
             if (mode === 'Wordwall Assist') {
-                try {
-                    let clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    let parsed = data.centerX ? data : JSON.parse(clean);
-                    
-                    if (parsed.centerX && parsed.centerY) {
-                        detectedCoords = {
-                            x: parsed.centerX / 1000,
-                            y: parsed.centerY / 1000
-                        };
-                        btnAutoClick.style.display = 'flex';
-                        btnAutoClick.innerHTML = `⚡ KETUK OTOMATIS: ${parsed.answer || 'Kartu Benar'}`;
-                    }
+                // Ekstraksi data JSON secara tangguh dari teks respon
+                const parsed = extractWordwallData(rawText);
+                
+                if (parsed && (parsed.centerX || parsed.answer)) {
+                    const cx = parsed.centerX || 500;
+                    const cy = parsed.centerY || 750;
+                    detectedCoords = { x: cx / 1000, y: cy / 1000 };
 
-                    resultContent.innerHTML = `🎯 <b>Jawaban:</b> ${parsed.answer || 'Terdeteksi'}<br>
+                    btnAutoClick.style.display = 'flex';
+                    autoClickText.innerText = `⚡ KETUK OTOMATIS: ${parsed.answer || 'Kartu Jawaban'}`;
+
+                    resultContent.innerHTML = `🎯 <b>Jawaban Terdeteksi:</b> <span style="color:#34d399; font-weight:bold;">${parsed.answer || '-'}</span><br>
 🎨 <b>Warna Kartu:</b> ${parsed.cardColor || '-'}<br>
-💡 <b>Alasan:</b> ${parsed.explanation || '-'}`;
+💡 <b>Penjelasan:</b> ${parsed.explanation || '-'}`;
+
+                    // Jika opsi "Langsung Auto-Click Otomatis" dicentang
+                    if (checkDirectClick && checkDirectClick.checked) {
+                        setTimeout(() => {
+                            if (window.Android && window.Android.performAutoClick) {
+                                window.Android.performAutoClick(detectedCoords.x, detectedCoords.y);
+                            }
+                        }, 500);
+                    }
                     return;
-                } catch(e) {
-                    // Fallback jika tidak JSON murni
                 }
             }
 
-            // Format jawaban biasa
-            resultContent.innerHTML = formatText(text);
+            // Tampilkan teks biasa untuk Jawab Soal, Docs, Penjelasan, dll.
+            resultContent.innerHTML = formatText(rawText);
         }
 
-        // 5. EKSEKUSI AUTO-CLICK
+        // Ekstraktor data Wordwall yang aman & tahan banting
+        function extractWordwallData(text) {
+            try {
+                const match = text.match(/\{[\s\S]*\}/);
+                if (match) {
+                    return JSON.parse(match[0]);
+                }
+            } catch(e) {}
+
+            // Regex parsing fallback
+            const ansMatch = text.match(/"answer"\s*:\s*"([^"]+)"/i) || text.match(/jawaban[:\s]+([^\n<]+)/i);
+            const colorMatch = text.match(/"cardColor"\s*:\s*"([^"]+)"/i) || text.match(/warna[:\s]+([^\n<]+)/i);
+            const xMatch = text.match(/"centerX"\s*:\s*(\d+)/i);
+            const yMatch = text.match(/"centerY"\s*:\s*(\d+)/i);
+
+            if (ansMatch) {
+                return {
+                    answer: ansMatch[1].trim(),
+                    cardColor: colorMatch ? colorMatch[1].trim() : 'Kartu',
+                    centerX: xMatch ? parseInt(xMatch[1]) : 500,
+                    centerY: yMatch ? parseInt(yMatch[1]) : 750,
+                    explanation: 'Terdeteksi dari layar'
+                };
+            }
+            return null;
+        }
+
+        // 6. EKSEKUSI AUTO-CLICK MANUAL
         btnAutoClick.addEventListener('click', () => {
             if (detectedCoords && window.Android && window.Android.performAutoClick) {
                 window.Android.performAutoClick(detectedCoords.x, detectedCoords.y);
