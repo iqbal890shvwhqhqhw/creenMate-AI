@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenMate AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-canvas: #0e1117;
+            --panel-bg: #161b22;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #10b981;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --card-bg: #1f2937;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Demo Background Container for Testing */
+        .workspace {
+            width: 100%;
+            max-width: 900px;
+            background: #111827;
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+        }
+
+        .workspace h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .workspace p {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .mock-question {
+            background: var(--card-bg);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .mock-question strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        /* FLOATING BUBBLE */
+        .floating-bubble {
+            position: fixed;
+            right: 24px;
+            bottom: 40px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+            user-select: none;
+        }
+
+        .floating-bubble:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5);
+        }
+
+        .floating-bubble svg {
+            width: 28px;
+            height: 28px;
+            fill: #ffffff;
+        }
+
+        /* FLOATING PANEL */
+        .floating-panel {
+            position: fixed;
+            right: 24px;
+            bottom: 110px;
+            width: 380px;
+            max-width: calc(100vw - 48px);
+            max-height: 82vh;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 9998;
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .floating-panel.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        /* PANEL HEADER */
+        .panel-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--panel-border);
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .brand-badge {
+            font-size: 0.7rem;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        .btn-close:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+        /* PANEL BODY */
+        .panel-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* MODE SELECTION */
+        .modes-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .modes-scroll::-webkit-scrollbar { display: none; }
+
+        .mode-chip {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-sub);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .mode-chip.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* ACTION BUTTONS */
+        .action-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-sub {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-sub:hover { background: rgba(255,255,255,0.06); }
+
+        /* PREVIEW IMAGE */
+        .preview-box {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--panel-border);
+            display: none;
+            max-height: 120px;
+        }
+        .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .btn-remove-preview {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* LOADING INDICATOR */
+        .loading-state {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(99,102,241,0.3);
+            border-top-color: #818cf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* RESULT SECTION */
+        .result-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .result-content {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #e5e7eb;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .btn-copy {
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            color: var(--text-sub);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+        /* TABS (Google Docs / History) */
+        .extra-section {
+            border-top: 1px solid var(--panel-border);
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.8rem;
+            outline: none;
+        }
+        .input-group input:focus { border-color: var(--primary); }
+
+        .input-group button {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* HIDDEN FILE INPUT */
+        #fileInput { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- DEMO CANVAS CONTAINER UNTUK TEST DI PC -->
+    <div class="workspace">
+        <h1>🎯 Area Pengujian ScreenMate AI</h1>
+        <p>Anda sedang berada di mode pengujian PC. Silakan coba fitur capture layar PC, upload gambar soal, atau paste screenshot (Ctrl + V).</p>
+        
+        <div class="mock-question">
+            <strong>Contoh Soal untuk Uji Coba:</strong>
+            Sebuah mobil bergerak dengan kecepatan awal 10 m/s dan mengalami percepatan konstan sebesar 2 m/s² selama 5 detik. Berapakah jarak tempuh mobil tersebut?<br><br>
+            A. 50 meter<br>
+            B. 65 meter<br>
+            C. 75 meter<br>
+            D. 100 meter
+        </div>
+        <p style="font-size: 0.85rem; color: #6b7280;">💡 <em>Tips: Klik tombol <b>Analyze Screen</b> di panel samping untuk langsung memilih jendela atau tab ini, atau gunakan tombol <b>Win + Shift + S</b> lalu <b>Ctrl + V</b> di web ini!</em></p>
+    </div>
+
+    <!-- FLOATING BUBBLE WIDGET -->
+    <div class="floating-bubble" id="floatingBubble" title="Buka ScreenMate AI">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l5.07-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+        </svg>
+    </div>
+
+    <!-- FLOATING PANEL -->
+    <div class="floating-panel active" id="floatingPanel">
+        <!-- HEADER -->
+        <div class="panel-header">
+            <div class="brand">
+                <span>ScreenMate AI</span>
+                <span class="brand-badge">Gemini 3.1 Vision</span>
+            </div>
+            <button class="btn-close" id="btnClosePanel" title="Tutup">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="panel-body">
+            <!-- MODE SELECTOR -->
+            <div class="modes-scroll" id="modeSelector">
+                <div class="mode-chip active" data-mode="Jawab Soal">Jawab Soal</div>
+                <div class="mode-chip" data-mode="Jelaskan Soal">Jelaskan Soal</div>
+                <div class="mode-chip" data-mode="Ringkas">Ringkas</div>
+                <div class="mode-chip" data-mode="Translate">Translate</div>
+                <div class="mode-chip" data-mode="Cek Jawaban">Cek Jawaban</div>
+            </div>
+
+            <!-- PREVIEW THUMBNAIL -->
+            <div class="preview-box" id="previewBox">
+                <img id="previewImg" src="" alt="Screenshot">
+                <button class="btn-remove-preview" id="btnRemovePreview">✕</button>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="action-grid">
+                <button class="btn-primary" id="btnAnalyzeScreen">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Analyze Screen (PC Capture)</span>
+                </button>
+
+                <div class="secondary-actions">
+                    <button class="btn-sub" id="btnUploadFile">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Upload Gambar
+                    </button>
+                    <button class="btn-sub" id="btnPasteClipboard">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                        </svg>
+                        Paste (Ctrl+V)
+                    </button>
+                </div>
+            </div>
+
+            <input type="file" id="fileInput" accept="image/*">
+
+            <!-- LOADING SPINNER -->
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <span id="loadingText">Menganalisis soal dengan Gemini 3.1 Pro...</span>
+            </div>
+
+            <!-- RESULT DISPLAY -->
+            <div class="result-wrapper">
+                <div class="result-header">
+                    <span>Hasil Analisis</span>
+                    <button class="btn-copy" id="btnCopyResult">Copy</button>
+                </div>
+                <div class="result-content" id="resultContent">Belum ada analisis. Tekan "Analyze Screen" atau paste gambar soal untuk memulai.</div>
+            </div>
+
+            <!-- WORDWALL AUTO ASSIST -->
+            <div class="extra-section" style="border-top: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.05); padding: 12px; border-radius: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 0.8rem; color: #a5b4fc; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        🎮 WORDWALL AUTO-ASSIST
+                    </span>
+                    <button id="btnCopyWordwallScript" style="background: var(--primary); color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; cursor: pointer;">
+                        Salin Skrip Auto-Click
+                    </button>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-sub); line-height: 1.4;">
+                    Tempelkan skrip ini di <b>Console (F12)</b> halaman Wordwall untuk memunculkan tombol auto-click langsung di game!
+                </p>
+                <div id="wordwallStatus" style="font-size: 0.75rem; color: #34d399; font-weight: 600; margin-top: 4px; display: none;"></div>
+            </div>
+
+            <!-- GOOGLE DOCS INTEGRATION INPUT -->
+            <div class="extra-section">
+                <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 600;">GOOGLE DOCS INTEGRASI</span>
+                <div class="input-group">
+                    <input type="url" id="docsUrl" placeholder="https://docs.google.com/document/d/...">
+                    <button id="btnDocsAnalyze">Analyze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT CLIENT -->
+    <script>
+        let currentMode = 'Jawab Soal';
+        let currentImageBlob = null;
+
+        const bubble = document.getElementById('floatingBubble');
+        const panel = document.getElementById('floatingPanel');
+        const btnClosePanel = document.getElementById('btnClosePanel');
+        const btnAnalyzeScreen = document.getElementById('btnAnalyzeScreen');
+        const btnUploadFile = document.getElementById('btnUploadFile');
+        const btnPasteClipboard = document.getElementById('btnPasteClipboard');
+        const fileInput = document.getElementById('fileInput');
+        const previewBox = document.getElementById('previewBox');
+        const previewImg = document.getElementById('previewImg');
+        const btnRemovePreview = document.getElementById('btnRemovePreview');
+        const loadingState = document.getElementById('loadingState');
+        const resultContent = document.getElementById('resultContent');
+        const btnCopyResult = document.getElementById('btnCopyResult');
+
+        // Toggle Bubble & Panel
+        bubble.addEventListener('click', () => panel.classList.toggle('active'));
+        btnClosePanel.addEventListener('click', () => panel.classList.remove('active'));
+
+        // Mode Selector Chips
+        document.querySelectorAll('.mode-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentMode = chip.getAttribute('data-mode');
+            });
+        });
+
+        // 1. Screen Capture via getDisplayMedia (PC Native Capture)
+        btnAnalyzeScreen.addEventListener('click', async () => {
+            try {
+                // If running in Android native wrapper
+                if (window.Android && window.Android.captureScreen) {
+                    window.Android.captureScreen();
+                    return;
+                }
+
+                // If running on PC browser
+                showLoading("Menangkap layar PC...");
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always" },
+                    audio: false
+                });
+
+                const track = stream.getVideoTracks()[0];
+                const imageCapture = new ImageCapture(track);
+                const bitmap = await imageCapture.grabFrame();
+                track.stop(); // Stop stream immediately
+
+                const canvas = document.createElement('canvas');
+                canvas.width = bitmap.width;
+                canvas.height = bitmap.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(bitmap, 0, 0);
+
+                canvas.toBlob(blob => {
+                    handleImageSelected(blob);
+                }, 'image/png');
+            } catch (err) {
+                hideLoading();
+                if (err.name !== 'NotAllowedError') {
+                    alert('Gagal menangkap layar: ' + err.message);
+                }
+            }
+        });
+
+        // 2. Upload file trigger
+        btnUploadFile.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleImageSelected(e.target.files[0]);
+            }
+        });
+
+        // 3. Paste Clipboard (Ctrl + V)
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    const blob = item.getAsFile();
+                    handleImageSelected(blob);
+                    panel.classList.add('active');
+                    break;
+                }
+            }
+        });
+
+        btnPasteClipboard.addEventListener('click', async () => {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const item of clipboardItems) {
+                    const imageType = item.types.find(type => type.startsWith('image/'));
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        handleImageSelected(blob);
+                        return;
+                    }
+                }
+                alert('Tidak ada gambar di clipboard. Tekan Win + Shift + S terlebih dahulu, lalu klik tombol ini lagi.');
+            } catch (err) {
+                alert('Gunakan kombinasi keyboard Ctrl + V untuk paste gambar.');
+            }
+        });
+
+        // Handle Image & Send to API
+        function handleImageSelected(blob) {
+            currentImageBlob = blob;
+            previewImg.src = URL.createObjectURL(blob);
+            previewBox.style.display = 'block';
+            sendToAnalyze(blob);
+        }
+
+        btnRemovePreview.addEventListener('click', () => {
+            currentImageBlob = null;
+            previewBox.style.display = 'none';
+            previewImg.src = '';
+        });
+
+        async function sendToAnalyze(blob) {
+            showLoading(`Menganalisis soal (${currentMode}) via Gemini 3.1 Pro...`);
+            
+            const formData = new FormData();
+            formData.append('screenshot', blob, 'screenshot.png');
+            formData.append('mode', currentMode);
+
+            try {
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Server returned ${res.status}`);
+                }
+
+                const data = await res.json();
+                resultContent.innerHTML = formatAnalysis(data.analysis || 'Tidak ada analisis yang diterima.');
+            } catch (err) {
+                resultContent.innerText = `[Error]: ${err.message}. Pastikan backend server.js berjalan di port 3000.`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function formatAnalysis(text) {
+            if (!text) return 'Tidak ada analisis yang diterima.';
+            let safe = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // Format bold **teks**
+            safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong style="color: #818cf8;">$1</strong>');
+            // Format highlight Jawaban
+            safe = safe.replace(/(\[Jawaban\][:\s]*[^\n<]+)/gi, '<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 6px; border-radius: 4px; font-weight: bold;">$1</span>');
+            // Format highlight Keyakinan
+            safe = safe.replace(/(\[Tingkat Keyakinan\][:\s]*[^\n<]+)/gi, '<span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 2px 6px; border-radius: 4px; font-weight: 600;">$1</span>');
+            // Format bullet list
+            safe = safe.replace(/^- (.*$)/gim, '• $1');
+            // Ganti baris baru ke <br>
+            safe = safe.replace(/\n/g, '<br>');
+
+            return safe;
+        }
+
+        function showLoading(msg) {
+            loadingState.style.display = 'flex';
+            document.getElementById('loadingText').innerText = msg;
+        }
+
+        function hideLoading() {
+            loadingState.style.display = 'none';
+        }
+
+        // Copy button
+        btnCopyResult.addEventListener('click', () => {
+            navigator.clipboard.writeText(resultContent.innerText);
+            btnCopyResult.innerText = 'Copied!';
+            setTimeout(() => btnCopyResult.innerText = 'Copy', 1500);
+        });
+
+        // Copy Wordwall Auto-Click Script
+        const wordwallScript = `(function() {
+    const canvas = document.querySelector('canvas.render-canvas') || document.querySelector('canvas');
+    if (!canvas) return alert('Buka halaman permainan Wordwall terlebih dahulu!');
+
+    let btn = document.getElementById('sm-wordwall-btn');
+    if (!btn) {
+        btn = document.createElement('div');
+        btn.id = 'sm-wordwall-btn';
+        btn.style = 'position:fixed;top:20px;right:20px;background:#6366f1;color:#fff;padding:12px 20px;border-radius:30px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,0.5);z-index:9999999;cursor:pointer;font-family:sans-serif;font-size:14px;display:flex;align-items:center;gap:8px;transition:all 0.2s;';
+        btn.innerHTML = '⚡ Auto-Click Jawaban';
+        document.body.appendChild(btn);
+    }
+
+    btn.onclick = async function() {
+        btn.innerText = '🔍 Menganalisis...';
+        btn.style.background = '#eab308';
+        canvas.toBlob(async (blob) => {
+            const fd = new FormData();
+            fd.append('screenshot', blob, 'ww.png');
+            try {
+                const res = await fetch('http://localhost:3000/api/wordwall-assist', { method: 'POST', body: fd });
+                const d = await res.json();
+                const total = d.totalCards || 5;
+                const idx = d.correctCardIndex || 1;
+                btn.innerText = '🎯 ' + (d.cardColor || 'Jawaban') + ' (' + idx + ')';
+                btn.style.background = '#10b981';
+
+                const rect = canvas.getBoundingClientRect();
+                let clickX, clickY;
+
+                if (d.centerX && d.centerY) {
+                    // Koordinat presisi langsung dari deteksi visual AI
+                    clickX = rect.left + (d.centerX / 1000) * rect.width;
+                    clickY = rect.top + (d.centerY / 1000) * rect.height;
+                } else {
+                    // Fallback memperhitungkan padding tepi canvas 5%
+                    const pad = rect.width * 0.05;
+                    const usableW = rect.width - (pad * 2);
+                    const cardW = usableW / total;
+                    clickX = rect.left + pad + (cardW * (idx - 0.5));
+                    clickY = rect.top + (rect.height * 0.75);
+                }
+
+                // Efek visual target di titik klik presisi
+                const ring = document.createElement('div');
+                ring.style = 'position:fixed;left:' + (clickX - 25) + 'px;top:' + (clickY - 25) + 'px;width:50px;height:50px;border-radius:50%;border:3px solid #10b981;box-shadow:0 0 25px #10b981, inset 0 0 15px #10b981;pointer-events:none;z-index:9999999;transition:transform 0.25s ease;display:flex;align-items:center;justify-content:center;';
+                ring.innerHTML = '<div style="width:8px;height:8px;background:#fff;border-radius:50%;"></div>';
+                document.body.appendChild(ring);
+
+                setTimeout(() => {
+                    ring.style.transform = 'scale(0.7)';
+                    const evtOpts = {
+                        bubbles: true,
+                        cancelable: true,
+                        composed: true,
+                        clientX: clickX,
+                        clientY: clickY,
+                        screenX: clickX,
+                        screenY: clickY,
+                        view: window
+                    };
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(t => {
+                        canvas.dispatchEvent(new MouseEvent(t, evtOpts));
+                    });
+                    setTimeout(() => ring.remove(), 800);
+                    setTimeout(() => { btn.innerHTML = '⚡ Auto-Click Jawaban'; btn.style.background = '#6366f1'; }, 2000);
+                }, 350);
+            } catch(e) {
+                btn.innerText = '❌ Gagal: ' + e.message;
+                btn.style.background = '#ef4444';
+            }
+        }, 'image/png');
+    };
+})();`;
+
+        document.getElementById('btnCopyWordwallScript').addEventListener('click', () => {
+            navigator.clipboard.writeText(wordwallScript);
+            const status = document.getElementById('wordwallStatus');
+            status.style.display = 'block';
+            status.innerText = '✅ Skrip berhasil disalin! Buka tab Wordwall > tekan F12 > Console > Ctrl+V > Enter.';
+            setTimeout(() => status.style.display = 'none', 6000);
+        });
+
+        // Google Docs Demo placeholder
+        document.getElementById('btnDocsAnalyze').addEventListener('click', () => {
+            const url = document.getElementById('docsUrl').value;
+            if (!url) return alert('Masukkan link Google Docs terlebih dahulu');
+            resultContent.innerText = `[Google Docs Integration]\nDokumen: ${url}\nFitur sinkronisasi Google Docs siap dihubungkan setelah MVP disetujui.`;
+        });
+    </script>
+</body>
+</html>

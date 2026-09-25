@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ScreenMate AI</string>
+    <string name="accessibility_desc">Mengizinkan ScreenMate AI melakukan ketukan otomatis pada kartu jawaban di layar.</string>
+</resources>
