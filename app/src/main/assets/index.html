@@ -459,10 +459,10 @@
 
                 <!-- GOOGLE DOCS LINK INPUT -->
                 <div class="docs-input-group" id="docsInputGroup">
-                    <div style="font-size: 0.74rem; color: #cbd5e1; font-weight: 700;">📄 Tempel Link Google Docs (Mengerjakan Semua Soal):</div>
+                    <div style="font-size: 0.74rem; color: #cbd5e1; font-weight: 700;">📄 Tempel Link Google Docs (Dikerjakan &amp; Diberi Link Baru):</div>
                     <div class="input-row">
                         <input type="url" id="docsUrlInput" class="input-text" placeholder="https://docs.google.com/document/d/...">
-                        <button class="btn-small" id="btnAnalyzeDocsLink">🚀 Kerjakan Link</button>
+                        <button class="btn-small" id="btnAnalyzeDocsLink">🚀 Kerjakan &amp; Buat Link</button>
                     </div>
                 </div>
 
@@ -683,24 +683,68 @@
 </small>`;
         };
 
+        let lastSolvedDocText = "";
+
         async function processDocsAssignment(docText) {
             showLoading("Gemini 3.8 Flash sedang MENGERJAKAN semua soal di dokumen...");
 
             const apiKey = localStorage.getItem('gemini_api_key');
-            const prompt = `Anda adalah asisten cerdas pengerjaan tugas & ujian.
-Tugas Anda adalah MEMBACA SELURUH DOKUMEN INI dan MENGERJAKAN SEMUA PERTANYAAN/TUGAS YANG ADA DI DALAMNYA SECARA LENGKAP DAN TUNTAS.
+            const prompt = `Anda adalah asisten cerdas pengerjaan tugas & ujian tingkat tinggi.
+Tugas Anda adalah membaca seluruh isi dokumen soal berikut dan MENGERJAKAN SEMUA NOMOR SOAL SECARA LENGKAP SAMPAI TUNTAS.
 
 ATURAN FORMAT PENGERJAAN:
-1. Kerjakan berurutan nomor per nomor (No. 1, No. 2, dst).
-2. Tuliskan teks soalnya secara ringkas.
-3. Berikan [KUNCI JAWABAN TEPAT]: (Sebutkan opsi A/B/C/D/E jika pilihan ganda beserta kalimat jawabannya).
-4. Berikan [PEMBAHASAN / CARA PENGERJAAN]: Uraikan langkah pengerjaan atau alasan jawaban secara ilmiah dan padat.
-5. Jika dokumen berupa materi bacaan/rangkuman tanpa soal, buatkan ringkasan poin-poin terpentingnya.
+1. Cantumkan judul: ========================================
+HASIL PENGERJAAN TUGAS DOKUMEN LENGKAP
+========================================
+2. Kerjakan nomor per nomor secara urut (Soal No. 1, Soal No. 2, dst).
+3. Ringkas teks soal.
+4. [KUNCI JAWABAN TEPAT]: (Sebutkan opsi A/B/C/D/E jika pilihan ganda beserta kalimat jawabannya secara jelas).
+5. [PEMBAHASAN LENGKAP]: Uraikan langkah pengerjaan atau alasan ilmiah secara padat dan terperinci.
+6. Berikan rangkuman di akhir.
 
 ISI DOKUMEN GOOGLE DOCS:
 ${docText.substring(0, 25000)}`;
 
-            await callGeminiText(prompt, apiKey);
+            const solvedText = await callGeminiText(prompt, apiKey);
+            if (solvedText) {
+                lastSolvedDocText = solvedText;
+                showLoading("Sedang membuat link dokumen baru yang sudah terisi jawaban...");
+                if (window.Android && window.Android.createPublicDocLink) {
+                    window.Android.createPublicDocLink(solvedText);
+                } else {
+                    displaySolvedDoc("", solvedText);
+                }
+            }
+        }
+
+        window.onPublicDocLinkCreated = function(newUrl) {
+            hideLoading();
+            displaySolvedDoc(newUrl, lastSolvedDocText);
+        };
+
+        function displaySolvedDoc(newUrl, textContent) {
+            let html = '';
+            if (newUrl) {
+                html += `
+                <div style="background:rgba(16, 185, 129, 0.15); border:1px solid #10b981; border-radius:12px; padding:12px; margin-bottom:12px;">
+                    <div style="color:#34d399; font-weight:bold; font-size:0.95rem; margin-bottom:4px;">🎉 TUGAS SELESAI DIKERJAKAN!</div>
+                    <div style="color:#cbd5e1; font-size:0.78rem; margin-bottom:8px;">Link dokumen baru berisi jawaban lengkap otomatis dibuat &amp; disalin ke Clipboard:</div>
+                    <div style="background:#0f172a; padding:8px 10px; border-radius:8px; font-family:monospace; font-size:0.82rem; color:#60a5fa; word-break:break-all; user-select:all; margin-bottom:10px;">
+                        ${newUrl}
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="if(window.Android &amp;&amp; window.Android.openBrowserUrl){window.Android.openBrowserUrl('${newUrl}');}else{window.open('${newUrl}','_blank');}" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                            🌐 BUKA LINK BARU
+                        </button>
+                        <button onclick="navigator.clipboard.writeText('${newUrl}'); alert('Link berhasil disalin!');" style="background:#374151; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                            📋 SALIN LINK
+                        </button>
+                    </div>
+                </div>`;
+            }
+            html += `<div style="font-size:0.75rem; color:#9ca3af; font-weight:bold; margin-bottom:6px;">📄 ISI LENGKAP JAWABAN TUGAS:</div>`;
+            html += formatText(textContent);
+            resultContent.innerHTML = html;
         }
 
         // 5. PROSES ANALISIS KE AI (DIRECT GEMINI API)
@@ -817,14 +861,16 @@ Tugas Anda adalah menganalisis pertanyaan pilihan ganda pada gambar layar ini (s
                     });
                     if (res.ok) {
                         const d = await res.json();
-                        hideLoading();
-                        resultContent.innerHTML = formatText(d.candidates?.[0]?.content?.parts?.[0]?.text || "Dokumen dianalisis.");
-                        return;
+                        const answerText = d.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (answerText) {
+                            return answerText;
+                        }
                     }
                 } catch(e) {}
             }
             hideLoading();
             resultContent.innerHTML = `<span style="color:#ef4444;">Gagal menganalisis dokumen via AI.</span>`;
+            return null;
         }
 
         function handleAiResponse(rawText, mode) {

@@ -21,11 +21,17 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.content.Context;
+import android.content.ClipboardManager;
+import android.content.ClipData;
+import android.net.Uri;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 
 public class FloatingService extends Service {
 
+    private static final String TAG = "FloatingService";
     private WindowManager windowManager;
     private ImageView floatingBubble;
     private WebView floatingPanel;
@@ -329,6 +335,94 @@ public class FloatingService extends Service {
                     openAccessibilitySettings();
                 });
             }
+        }
+
+        @JavascriptInterface
+        public void openBrowserUrl(final String url) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(FloatingService.this, "Gagal membuka browser: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void createPublicDocLink(final String content) {
+            new Thread(() -> {
+                String publicUrl = null;
+                try {
+                    java.net.URL url = new java.net.URL("https://paste.rs");
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setDoOutput(true);
+                    conn.setRequestProperty("Content-Type", "text/plain; charset=UTF-8");
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(15000);
+
+                    byte[] postData = content.getBytes("UTF-8");
+                    try (java.io.OutputStream os = conn.getOutputStream()) {
+                        os.write(postData);
+                    }
+
+                    int code = conn.getResponseCode();
+                    if (code == 200 || code == 201 || code == 206) {
+                        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                        publicUrl = reader.readLine();
+                        reader.close();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error upload paste.rs: " + e.getMessage());
+                }
+
+                if (publicUrl == null || !publicUrl.startsWith("http")) {
+                    try {
+                        java.net.URL url = new java.net.URL("https://bytebin.lucko.me/post");
+                        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setDoOutput(true);
+                        conn.setRequestProperty("Content-Type", "text/plain; charset=UTF-8");
+                        conn.setConnectTimeout(10000);
+                        conn.setReadTimeout(10000);
+
+                        byte[] postData = content.getBytes("UTF-8");
+                        try (java.io.OutputStream os = conn.getOutputStream()) {
+                            os.write(postData);
+                        }
+
+                        int code = conn.getResponseCode();
+                        if (code == 201 || code == 200) {
+                            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                            StringBuilder sb = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) sb.append(line);
+                            reader.close();
+                            org.json.JSONObject obj = new org.json.JSONObject(sb.toString());
+                            if (obj.has("key")) {
+                                publicUrl = "https://bytebin.lucko.me/" + obj.getString("key");
+                            }
+                        }
+                    } catch (Exception e2) {
+                        Log.e(TAG, "Error upload bytebin: " + e2.getMessage());
+                    }
+                }
+
+                final String finalUrl = (publicUrl != null && publicUrl.startsWith("http")) ? publicUrl.trim() : "";
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (!finalUrl.isEmpty()) {
+                        try {
+                            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                            ClipData clip = ClipData.newPlainText("Link Jawaban Tugas", finalUrl);
+                            clipboard.setPrimaryClip(clip);
+                            Toast.makeText(FloatingService.this, "📋 Link jawaban baru berhasil disalin ke Clipboard!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception ignored) {}
+                    }
+                    floatingPanel.evaluateJavascript("window.onPublicDocLinkCreated('" + finalUrl.replace("'", "\\'") + "');", null);
+                });
+            }).start();
         }
     }
 }
