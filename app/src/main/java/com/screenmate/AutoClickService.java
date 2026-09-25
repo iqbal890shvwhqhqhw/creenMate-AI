@@ -93,6 +93,9 @@ public class AutoClickService extends AccessibilityService {
             public void onCompleted(GestureDescription gestureDescription) {
                 super.onCompleted(gestureDescription);
                 Log.d(TAG, "Ketukan virtual berhasil dieksekusi di layar.");
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    android.widget.Toast.makeText(getApplicationContext(), "⚡ Jawaban berhasil dicentang otomatis!", android.widget.Toast.LENGTH_SHORT).show();
+                });
             }
 
             @Override
