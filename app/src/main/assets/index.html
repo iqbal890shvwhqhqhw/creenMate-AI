@@ -548,7 +548,8 @@
         });
 
         btnSaveSettings.addEventListener('click', () => {
-            localStorage.setItem('gemini_api_key', inputApiKey.value.trim());
+            const cleanKey = inputApiKey.value.trim().replace(/^["']|["']$/g, '');
+            localStorage.setItem('gemini_api_key', cleanKey);
             settingsBox.style.display = 'none';
             alert('API Key berhasil disimpan!');
         });
@@ -685,10 +686,92 @@
 
         let lastSolvedDocText = "";
 
-        async function processDocsAssignment(docText) {
-            showLoading("Gemini 3.8 Flash sedang MENGERJAKAN semua soal di dokumen...");
+        // Panggilan AI Tangguh: Memakai Java Native Background Thread (Bebas CORS) atau Fallback Fetch
+        function requestGeminiAI(promptText, base64Image) {
+            return new Promise((resolve, reject) => {
+                const apiKey = (localStorage.getItem('gemini_api_key') || '').trim();
+                if (!apiKey) {
+                    reject("🔑 Gemini API Key belum dimasukkan. Klik ikon gerigi ⚙️ di pojok kanan atas untuk memasukkan API Key Anda.");
+                    return;
+                }
 
-            const apiKey = localStorage.getItem('gemini_api_key');
+                const reqId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+                window['gemini_cb_' + reqId] = function(success, data) {
+                    delete window['gemini_cb_' + reqId];
+                    if (success) {
+                        resolve(data);
+                    } else {
+                        reject(data);
+                    }
+                };
+
+                if (window.Android && window.Android.sendGeminiRequest) {
+                    window.Android.sendGeminiRequest(promptText, base64Image || '', apiKey, reqId);
+                } else {
+                    fallbackBrowserGemini(promptText, base64Image, apiKey)
+                        .then(resolve)
+                        .catch(reject);
+                }
+            });
+        }
+
+        window.onGeminiSuccess = function(reqId, base64Result) {
+            try {
+                let binaryStr = atob(base64Result);
+                let bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                }
+                let decoded = new TextDecoder('utf-8').decode(bytes);
+                if (window['gemini_cb_' + reqId]) window['gemini_cb_' + reqId](true, decoded);
+            } catch(e) {
+                if (window['gemini_cb_' + reqId]) window['gemini_cb_' + reqId](true, atob(base64Result));
+            }
+        };
+
+        window.onGeminiError = function(reqId, errMsg) {
+            if (window['gemini_cb_' + reqId]) window['gemini_cb_' + reqId](false, errMsg);
+        };
+
+        async function fallbackBrowserGemini(promptText, base64Image, apiKey) {
+            const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+            const parts = [];
+            if (base64Image) {
+                parts.push({ inline_data: { mime_type: "image/jpeg", data: base64Image } });
+            }
+            if (promptText) {
+                parts.push({ text: promptText });
+            }
+            const bodyPayload = { contents: [{ parts }] };
+
+            let lastErr = 'Gagal menghubungi server Google Gemini.';
+            for (const model of candidateModels) {
+                try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyPayload)
+                    });
+                    if (res.ok) {
+                        const d = await res.json();
+                        const ans = d.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (ans) return ans;
+                    } else {
+                        const errJson = await res.json();
+                        lastErr = errJson.error ? errJson.error.message : `HTTP ${res.status}`;
+                    }
+                } catch(e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr);
+        }
+
+        async function processDocsAssignment(docText) {
+            showLoading("Gemini sedang MENGERJAKAN semua soal di dokumen...");
+
             const prompt = `Anda adalah asisten cerdas pengerjaan tugas & ujian tingkat tinggi.
 Tugas Anda adalah membaca seluruh isi dokumen soal berikut dan MENGERJAKAN SEMUA NOMOR SOAL SECARA LENGKAP SAMPAI TUNTAS.
 
@@ -705,15 +788,20 @@ HASIL PENGERJAAN TUGAS DOKUMEN LENGKAP
 ISI DOKUMEN GOOGLE DOCS:
 ${docText.substring(0, 25000)}`;
 
-            const solvedText = await callGeminiText(prompt, apiKey);
-            if (solvedText) {
-                lastSolvedDocText = solvedText;
-                showLoading("Sedang membuat link dokumen baru yang sudah terisi jawaban...");
-                if (window.Android && window.Android.createPublicDocLink) {
-                    window.Android.createPublicDocLink(solvedText);
-                } else {
-                    displaySolvedDoc("", solvedText);
+            try {
+                const solvedText = await requestGeminiAI(prompt, null);
+                if (solvedText) {
+                    lastSolvedDocText = solvedText;
+                    showLoading("Sedang membuat link dokumen baru yang sudah terisi jawaban...");
+                    if (window.Android && window.Android.createPublicDocLink) {
+                        window.Android.createPublicDocLink(solvedText);
+                    } else {
+                        displaySolvedDoc("", solvedText);
+                    }
                 }
+            } catch (err) {
+                hideLoading();
+                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Gagal Analisis AI]:</span> ${err}<br><br><small style="color:#9ca3af;">💡 Pastikan Gemini API Key di ikon gerigi ⚙️ sudah benar dan memiliki kuota.</small>`;
             }
         }
 
@@ -751,15 +839,6 @@ ${docText.substring(0, 25000)}`;
         async function processAIAnalysis(base64Image, mode) {
             showLoading(`Menganalisis & mendeteksi jawaban (${mode})...`);
             
-            const apiKey = localStorage.getItem('gemini_api_key');
-            if (!apiKey) {
-                hideLoading();
-                resultContent.innerHTML = `<span style="color:#f59e0b;">🔑 Masukkan Gemini API Key:</span><br>
-Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis Anda (didapatkan di <a href="https://aistudio.google.com" target="_blank" style="color:#818cf8;">aistudio.google.com</a>) agar AI bisa langsung menjawab.`;
-                settingsBox.style.display = 'flex';
-                return;
-            }
-
             // Susun prompt deteksi koordinat untuk auto-click
             let systemPrompt = "";
             if (mode === 'Wordwall Assist') {
@@ -795,82 +874,13 @@ Tugas Anda adalah menganalisis pertanyaan pilihan ganda pada gambar layar ini (s
 3. [TINGKAT KEYAKINAN]: 100%`;
             }
 
-            // Model prioritas terbaru
-            const candidateModels = [
-                'gemini-3.8-flash',
-                'gemini-3-flash-preview',
-                'gemini-2.5-flash',
-                'gemini-1.5-flash'
-            ];
-
-            const bodyPayload = {
-                contents: [{
-                    parts: [
-                        { inline_data: { mime_type: "image/jpeg", data: base64Image } },
-                        { text: systemPrompt }
-                    ]
-                }]
-            };
-
-            let responseData = null;
-            let lastErrMsg = '';
-
-            for (const model of candidateModels) {
-                try {
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                    const res = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(bodyPayload)
-                    });
-
-                    if (res.ok) {
-                        responseData = await res.json();
-                        break;
-                    } else {
-                        const errJson = await res.json();
-                        lastErrMsg = errJson.error ? errJson.error.message : `HTTP ${res.status}`;
-                    }
-                } catch (e) {
-                    lastErrMsg = e.message;
-                }
-            }
-
-            if (!responseData) {
+            try {
+                const rawText = await requestGeminiAI(systemPrompt, base64Image);
+                handleAiResponse(rawText, mode);
+            } catch (err) {
                 hideLoading();
-                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Error Analisis]:</span> ${lastErrMsg}<br><br><small style="color:#9ca3af;">Periksa koneksi internet atau perbarui API Key di tombol ⚙️.</small>`;
-                return;
+                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Error Analisis AI]:</span> ${err}<br><br><small style="color:#9ca3af;">💡 Periksa kembali Gemini API Key Anda di tombol gerigi ⚙️.</small>`;
             }
-
-            const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
-            handleAiResponse(rawText, mode);
-        }
-
-        // Panggil teks langsung
-        async function callGeminiText(promptText, apiKey) {
-            const candidateModels = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-1.5-flash'];
-            const bodyPayload = { contents: [{ parts: [{ text: promptText }] }] };
-            
-            for (const model of candidateModels) {
-                try {
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                    const res = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(bodyPayload)
-                    });
-                    if (res.ok) {
-                        const d = await res.json();
-                        const answerText = d.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (answerText) {
-                            return answerText;
-                        }
-                    }
-                } catch(e) {}
-            }
-            hideLoading();
-            resultContent.innerHTML = `<span style="color:#ef4444;">Gagal menganalisis dokumen via AI.</span>`;
-            return null;
         }
 
         function handleAiResponse(rawText, mode) {

@@ -26,6 +26,8 @@ import android.content.ClipboardManager;
 import android.content.ClipData;
 import android.net.Uri;
 import android.util.Log;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.io.ByteArrayOutputStream;
 
@@ -120,6 +122,9 @@ public class FloatingService extends Service {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
 
         floatingPanel.setWebChromeClient(new WebChromeClient());
         floatingPanel.addJavascriptInterface(new WebAppInterface(), "Android");
@@ -299,6 +304,9 @@ public class FloatingService extends Service {
                     if (rawText.trim().isEmpty()) {
                         throw new Exception("Dokumen kosong atau memerlukan login akun Google.");
                     }
+                    if (rawText.contains("<html") && (rawText.contains("accounts.google.com") || rawText.contains("ServiceLogin") || rawText.contains("Sign in") || rawText.contains("signin"))) {
+                        throw new Exception("Dokumen ini masih DIPRIVAT (hanya pemilik yang bisa akses). Ubah akses link Google Docs menjadi 'Siapa saja yang memiliki link' (Anyone with the link), atau buka dokumen di layar HP lalu klik tombol 'SCAN DOKUMEN DI LAYAR'.");
+                    }
 
                     final String base64Text = Base64.encodeToString(rawText.getBytes("UTF-8"), Base64.NO_WRAP);
 
@@ -421,6 +429,120 @@ public class FloatingService extends Service {
                         } catch (Exception ignored) {}
                     }
                     floatingPanel.evaluateJavascript("window.onPublicDocLinkCreated('" + finalUrl.replace("'", "\\'") + "');", null);
+                });
+            }).start();
+        }
+
+        @JavascriptInterface
+        public void sendGeminiRequest(final String promptText, final String base64Image, final String apiKey, final String requestId) {
+            new Thread(() -> {
+                String cleanKey = apiKey != null ? apiKey.trim().replace("\"", "").replace("'", "") : "";
+                if (cleanKey.isEmpty()) {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        floatingPanel.evaluateJavascript("window.onGeminiError('" + requestId + "', 'API Key kosong. Masukkan Gemini API Key di ikon ⚙️.');", null);
+                    });
+                    return;
+                }
+
+                String[] candidateModels = new String[]{
+                    "gemini-3.8-flash",
+                    "gemini-3.5-flash-lite",
+                    "gemini-2.0-flash",
+                    "gemini-1.5-flash"
+                };
+
+                String lastError = "Gagal menghubungi server Google Gemini.";
+
+                for (String model : candidateModels) {
+                    try {
+                        String urlString = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + cleanKey;
+                        java.net.URL url = new java.net.URL(urlString);
+                        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setDoOutput(true);
+                        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                        conn.setConnectTimeout(25000);
+                        conn.setReadTimeout(45000);
+
+                        JSONObject payload = new JSONObject();
+                        JSONArray contents = new JSONArray();
+                        JSONObject contentObj = new JSONObject();
+                        JSONArray parts = new JSONArray();
+
+                        if (promptText != null && !promptText.isEmpty()) {
+                            JSONObject textPart = new JSONObject();
+                            textPart.put("text", promptText);
+                            parts.put(textPart);
+                        }
+
+                        if (base64Image != null && !base64Image.isEmpty()) {
+                            JSONObject imagePart = new JSONObject();
+                            JSONObject inlineData = new JSONObject();
+                            inlineData.put("mimeType", "image/jpeg");
+                            inlineData.put("data", base64Image);
+                            imagePart.put("inlineData", inlineData);
+                            parts.put(imagePart);
+                        }
+
+                        contentObj.put("parts", parts);
+                        contents.put(contentObj);
+                        payload.put("contents", contents);
+
+                        byte[] out = payload.toString().getBytes("UTF-8");
+                        try (java.io.OutputStream os = conn.getOutputStream()) {
+                            os.write(out);
+                        }
+
+                        int statusCode = conn.getResponseCode();
+                        if (statusCode == 200) {
+                            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream(), "UTF-8"));
+                            StringBuilder sb = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                sb.append(line).append("\n");
+                            }
+                            reader.close();
+
+                            JSONObject responseObj = new JSONObject(sb.toString());
+                            JSONArray candidates = responseObj.optJSONArray("candidates");
+                            if (candidates != null && candidates.length() > 0) {
+                                JSONObject firstCandidate = candidates.getJSONObject(0);
+                                JSONObject content = firstCandidate.optJSONObject("content");
+                                if (content != null) {
+                                    JSONArray resParts = content.optJSONArray("parts");
+                                    if (resParts != null && resParts.length() > 0) {
+                                        String generatedText = resParts.getJSONObject(0).optString("text", "");
+                                        final String b64Text = Base64.encodeToString(generatedText.getBytes("UTF-8"), Base64.NO_WRAP);
+                                        new Handler(Looper.getMainLooper()).post(() -> {
+                                            floatingPanel.evaluateJavascript("window.onGeminiSuccess('" + requestId + "', '" + b64Text + "');", null);
+                                        });
+                                        return;
+                                    }
+                                }
+                            }
+                        } else {
+                            java.io.InputStream es = conn.getErrorStream();
+                            if (es != null) {
+                                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(es, "UTF-8"));
+                                StringBuilder sb = new StringBuilder();
+                                String line;
+                                while ((line = reader.readLine()) != null) sb.append(line);
+                                reader.close();
+                                lastError = "HTTP " + statusCode + ": " + sb.toString();
+                            } else {
+                                lastError = "HTTP " + statusCode;
+                            }
+                            Log.w(TAG, "Model " + model + " error: " + lastError);
+                        }
+                    } catch (Exception e) {
+                        lastError = e.getMessage() != null ? e.getMessage() : e.toString();
+                        Log.e(TAG, "Exception calling Gemini with " + model + ": " + lastError);
+                    }
+                }
+
+                final String finalError = lastError;
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    floatingPanel.evaluateJavascript("window.onGeminiError('" + requestId + "', '" + finalError.replace("'", "\\'").replace("\n", " ").replace("\r", "") + "');", null);
                 });
             }).start();
         }
