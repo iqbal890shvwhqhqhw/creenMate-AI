@@ -627,8 +627,14 @@ Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis
                     return;
                 }
 
-                // Panggil Gemini 2.5 Flash / 1.5 Flash via REST API
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                // Panggil Gemini API (Mengutamakan gemini-3.8-flash sesuai rekomendasi resmi)
+                const candidateModels = [
+                    'gemini-3.8-flash',
+                    'gemini-3-flash-preview',
+                    'gemini-2.5-flash',
+                    'gemini-1.5-flash'
+                ];
+
                 const bodyPayload = {
                     contents: [{
                         parts: [
@@ -638,19 +644,35 @@ Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis
                     }]
                 };
 
-                const res = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bodyPayload)
-                });
+                let responseData = null;
+                let lastErrMsg = '';
 
-                if (!res.ok) {
-                    const errJson = await res.json();
-                    throw new Error(errJson.error ? errJson.error.message : `HTTP ${res.status}`);
+                for (const model of candidateModels) {
+                    try {
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                        const res = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(bodyPayload)
+                        });
+
+                        if (res.ok) {
+                            responseData = await res.json();
+                            break;
+                        } else {
+                            const errJson = await res.json();
+                            lastErrMsg = errJson.error ? errJson.error.message : `HTTP ${res.status}`;
+                        }
+                    } catch (e) {
+                        lastErrMsg = e.message;
+                    }
                 }
 
-                const data = await res.json();
-                const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
+                if (!responseData) {
+                    throw new Error(lastErrMsg || 'Gagal menghubungi server Gemini AI.');
+                }
+
+                const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
                 handleAiResponse({ analysis: rawText }, mode);
 
             } catch (err) {
