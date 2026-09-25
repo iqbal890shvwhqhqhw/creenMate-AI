@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,12 +24,40 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
 
     - name: Build APK with Gradle
-      run: gradle assembleDebug
+      run: gradle assembleDebug --stacktrace
 
-    - name: Upload APK
+    - name: Prepare APK File
+      run: |
+        cp app/build/outputs/apk/debug/app-debug.apk ScreenMate-AI.apk
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ScreenMate-AI-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: ScreenMate-AI.apk
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: release-build-${{ github.run_number }}
+        name: "ScreenMate AI Android APK (Build #${{ github.run_number }})"
+        draft: false
+        prerelease: false
+        body: |
+          ### 📱 Unduh & Instal ScreenMate AI untuk Android
+          
+          Klik file **ScreenMate-AI.apk** di bawah untuk langsung mengunduh dan menginstal di HP Android Anda.
+          
+          **Langkah Instalasi:**
+          1. Unduh **ScreenMate-AI.apk** di daftar Assets di bawah.
+          2. Buka file `.apk` di HP Android dan pilih **Install**.
+          3. Jika muncul peringatan keamanan Play Protect / Unknown Sources, pilih **Tetap Instal / Install Anyway**.
+          4. Buka aplikasi, aktifkan izin **Tampilkan di Atas Aplikasi Lain** (Floating Widget) dan **Layanan Aksesibilitas** (untuk fitur Auto-Click).
+        files: |
+          ScreenMate-AI.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
