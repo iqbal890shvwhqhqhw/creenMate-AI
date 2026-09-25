@@ -6,15 +6,16 @@
     <title>ScreenMate AI Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-card: rgba(22, 27, 34, 0.96);
+            --bg-card: rgba(17, 24, 39, 0.96);
             --border-card: rgba(255, 255, 255, 0.12);
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --accent: #10b981;
-            --text-main: #f3f4f6;
+            --accent-hover: #059669;
+            --text-main: #f9fafb;
             --text-sub: #9ca3af;
             --card-sub: #1f2937;
             --danger: #ef4444;
@@ -35,16 +36,16 @@
             overflow: hidden;
         }
 
-        /* BACKDROP: Ketuk area luar untuk menutup */
+        /* OVERLAY BACKDROP: Ketuk di luar untuk menutup */
         .overlay-backdrop {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.55);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: center;
-            padding: 16px;
+            padding: 12px;
             animation: fadeIn 0.2s ease-out;
         }
 
@@ -53,15 +54,15 @@
             to { opacity: 1; }
         }
 
-        /* FLOATING CARD CONTAINER */
+        /* FLOATING CARD CONTAINER (BOTTOM SHEET / FLOATING) */
         .panel-card {
             width: 100%;
-            max-width: 380px;
-            max-height: 85vh;
+            max-width: 420px;
+            max-height: 88vh;
             background: var(--bg-card);
             border: 1px solid var(--border-card);
-            border-radius: 22px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 24px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.75);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -69,7 +70,7 @@
         }
 
         @keyframes slideUp {
-            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            from { transform: translateY(40px) scale(0.96); opacity: 0; }
             to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
@@ -80,25 +81,26 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-card);
-            background: rgba(15, 20, 28, 0.8);
+            background: rgba(15, 23, 42, 0.85);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 700;
-            font-size: 0.95rem;
+            font-weight: 800;
+            font-size: 1rem;
             color: #fff;
         }
 
         .brand-badge {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             background: rgba(99, 102, 241, 0.25);
             color: #a5b4fc;
             padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .header-actions {
@@ -118,14 +120,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.2s;
         }
         .btn-icon:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.1);
         }
-        .btn-close-danger:hover {
+        .btn-close:hover {
             color: #fff;
             background: var(--danger);
         }
@@ -153,81 +155,88 @@
             background: var(--card-sub);
             border: 1px solid var(--border-card);
             color: var(--text-sub);
-            padding: 6px 12px;
-            border-radius: 18px;
-            font-size: 0.75rem;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .mode-chip.active {
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         }
 
-        /* ACTION BUTTONS */
-        .action-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
+        /* MAIN ACTION BUTTON: ANALISIS LAYAR LANGSUNG */
+        .btn-scan-screen {
+            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
             color: #fff;
             border: none;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.88rem;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+            gap: 10px;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s;
         }
-        .btn-primary:active {
-            transform: scale(0.98);
+        .btn-scan-screen:active {
+            transform: scale(0.97);
         }
 
-        .btn-sub {
-            background: var(--card-sub);
-            border: 1px solid var(--border-card);
-            color: var(--text-main);
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.82rem;
-            font-weight: 600;
+        .btn-auto-click {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            border: none;
+            padding: 13px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.92rem;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            animation: pulseGreen 1.5s infinite;
+        }
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         /* PREVIEW IMAGE */
         .preview-box {
             position: relative;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-card);
             display: none;
-            max-height: 140px;
+            max-height: 120px;
+            background: #000;
         }
         .preview-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             display: block;
         }
         .btn-remove-preview {
             position: absolute;
             top: 6px;
             right: 6px;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
             border: none;
             width: 24px;
@@ -241,19 +250,20 @@
         .loading-state {
             display: none;
             align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(99, 102, 241, 0.12);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            border-radius: 12px;
-            font-size: 0.8rem;
-            color: #a5b4fc;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 14px;
+            font-size: 0.85rem;
+            color: #c7d2fe;
+            font-weight: 600;
         }
 
         .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(99, 102, 241, 0.3);
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
             border-top-color: #818cf8;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -264,11 +274,11 @@
         .result-wrapper {
             background: var(--card-sub);
             border: 1px solid var(--border-card);
-            border-radius: 12px;
-            padding: 12px;
+            border-radius: 14px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .result-header {
@@ -277,28 +287,60 @@
             justify-content: space-between;
             font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
             color: var(--text-sub);
             font-weight: 700;
         }
 
         .result-content {
-            font-size: 0.84rem;
-            line-height: 1.5;
-            color: #e5e7eb;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #f3f4f6;
             white-space: pre-wrap;
-            max-height: 180px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
         .btn-copy {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border-card);
             color: var(--text-sub);
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             font-size: 0.72rem;
+            font-weight: 600;
             cursor: pointer;
+        }
+
+        /* SETTINGS MODAL / CONFIG CARD */
+        .settings-box {
+            display: none;
+            background: #111827;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 14px;
+            padding: 14px;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .settings-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #a5b4fc;
+        }
+
+        .input-text {
+            width: 100%;
+            background: #1f2937;
+            border: 1px solid var(--border-card);
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            outline: none;
+        }
+        .input-text:focus {
+            border-color: var(--primary);
         }
 
         /* FOOTER ACTIONS */
@@ -307,10 +349,10 @@
             border-top: 1px solid var(--border-card);
             display: flex;
             gap: 8px;
-            background: rgba(15, 20, 28, 0.6);
+            background: rgba(15, 23, 42, 0.7);
         }
 
-        .btn-close-panel {
+        .btn-hide-panel {
             flex: 1;
             background: #374151;
             color: #fff;
@@ -332,36 +374,56 @@
             font-weight: 600;
             cursor: pointer;
         }
-
-        #fileInput { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- OVERLAY BACKDROP (KLIK DI LUAR CARD AKAN MENUTUP PANEL) -->
+    <!-- OVERLAY BACKDROP (KETUK DI LUAR KARTU AKAN MENUTUP PANEL) -->
     <div class="overlay-backdrop" id="overlayBackdrop">
         <div class="panel-card" id="panelCard">
             <!-- HEADER -->
             <div class="card-header">
                 <div class="brand">
                     <span>⚡ ScreenMate AI</span>
-                    <span class="brand-badge">Mobile</span>
+                    <span class="brand-badge" id="modeBadge">Jawab Soal</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-icon btn-close-danger" id="btnCloseTop" title="Tutup Panel">✕</button>
+                    <button class="btn-icon" id="btnToggleSettings" title="Pengaturan API / Server">⚙️</button>
+                    <button class="btn-icon btn-close" id="btnCloseTop" title="Tutup Panel">✕</button>
                 </div>
             </div>
 
             <!-- BODY -->
             <div class="card-body">
+                <!-- SETTINGS MODAL (API KEY & SERVER) -->
+                <div class="settings-box" id="settingsBox">
+                    <div class="settings-title">⚙️ Konfigurasi AI &amp; Server</div>
+                    <label style="font-size: 0.72rem; color: var(--text-sub);">Google Gemini API Key (aistudio.google.com):</label>
+                    <input type="password" id="inputApiKey" class="input-text" placeholder="AIzaSy...">
+                    <label style="font-size: 0.72rem; color: var(--text-sub);">Atau URL Server Backend PC (opsional):</label>
+                    <input type="text" id="inputServerUrl" class="input-text" placeholder="http://192.168.1.10:3000">
+                    <button class="btn-hide-panel" id="btnSaveSettings" style="background: var(--primary);">Simpan Pengaturan</button>
+                </div>
+
                 <!-- MODE SELECTOR -->
                 <div class="modes-scroll" id="modeSelector">
                     <div class="mode-chip active" data-mode="Jawab Soal">🎯 Jawab Soal</div>
+                    <div class="mode-chip" data-mode="Wordwall Assist">🎮 Wordwall Auto-Click</div>
+                    <div class="mode-chip" data-mode="Google Docs">📄 Google Docs / Bacaan</div>
                     <div class="mode-chip" data-mode="Jelaskan Soal">💡 Penjelasan</div>
-                    <div class="mode-chip" data-mode="Ringkas">📝 Ringkas</div>
                     <div class="mode-chip" data-mode="Translate">🌐 Terjemah</div>
-                    <div class="mode-chip" data-mode="Wordwall Assist">🎮 Wordwall</div>
                 </div>
+
+                <!-- TOMBOL UTAMA: LANGSUNG SCAN LAYAR HP SAAT INI -->
+                <button class="btn-scan-screen" id="btnScanScreen">
+                    <span style="font-size: 1.2rem;">📸</span>
+                    <span>ANALISIS LAYAR INI SEKARANG</span>
+                </button>
+
+                <!-- TOMBOL AUTO-CLICK JAWABAN (OTOMATIS MUNCUL JIKA TERDETEKSI KARTU WORDWALL/PILIHAN) -->
+                <button class="btn-auto-click" id="btnAutoClick">
+                    <span>⚡ KETUK OTOMATIS JAWABAN DI LAYAR</span>
+                </button>
 
                 <!-- PREVIEW BOX -->
                 <div class="preview-box" id="previewBox">
@@ -369,37 +431,25 @@
                     <button class="btn-remove-preview" id="btnRemovePreview">✕</button>
                 </div>
 
-                <!-- ACTIONS -->
-                <div class="action-grid">
-                    <button class="btn-primary" id="btnUploadImage">
-                        <span>📁 Pilih Gambar Soal / Screenshot</span>
-                    </button>
-                    <button class="btn-sub" id="btnAutoClick" style="display:none; background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">
-                        <span>⚡ Ketuk Otomatis Jawaban di Layar</span>
-                    </button>
-                </div>
-
-                <input type="file" id="fileInput" accept="image/*">
-
                 <!-- LOADING SPINNER -->
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
-                    <span id="loadingText">Menganalisis soal dengan Gemini AI...</span>
+                    <span id="loadingText">Menangkap &amp; menganalisis layar...</span>
                 </div>
 
-                <!-- RESULT SECTION -->
+                <!-- HASIL JAWABAN -->
                 <div class="result-wrapper">
                     <div class="result-header">
-                        <span>Hasil Jawaban</span>
+                        <span>Hasil Analisis AI</span>
                         <button class="btn-copy" id="btnCopyResult">Copy</button>
                     </div>
-                    <div class="result-content" id="resultContent">Pilih gambar screenshot soal untuk melihat jawaban otomatis di sini.</div>
+                    <div class="result-content" id="resultContent">Buka soal/game di HP Anda, lalu klik tombol <b>"ANALISIS LAYAR INI SEKARANG"</b> di atas.</div>
                 </div>
             </div>
 
             <!-- FOOTER -->
             <div class="card-footer">
-                <button class="btn-close-panel" id="btnCloseBottom">Sembunyikan Panel</button>
+                <button class="btn-hide-panel" id="btnCloseBottom">Sembunyikan Panel</button>
                 <button class="btn-stop-service" id="btnStopApp" title="Matikan Floating Bubble">Matikan Bubble</button>
             </div>
         </div>
@@ -408,53 +458,44 @@
     <!-- SCRIPT CLIENT -->
     <script>
         let currentMode = 'Jawab Soal';
-        let detectedCoordinates = null;
+        let detectedCoords = null;
+        let currentBase64 = null;
 
         const backdrop = document.getElementById('overlayBackdrop');
-        const card = document.getElementById('panelCard');
         const btnCloseTop = document.getElementById('btnCloseTop');
         const btnCloseBottom = document.getElementById('btnCloseBottom');
         const btnStopApp = document.getElementById('btnStopApp');
-        const btnUploadImage = document.getElementById('btnUploadImage');
+        const btnScanScreen = document.getElementById('btnScanScreen');
         const btnAutoClick = document.getElementById('btnAutoClick');
-        const fileInput = document.getElementById('fileInput');
         const previewBox = document.getElementById('previewBox');
         const previewImg = document.getElementById('previewImg');
         const btnRemovePreview = document.getElementById('btnRemovePreview');
         const loadingState = document.getElementById('loadingState');
         const resultContent = document.getElementById('resultContent');
         const btnCopyResult = document.getElementById('btnCopyResult');
+        const modeBadge = document.getElementById('modeBadge');
+        
+        // Settings elements
+        const btnToggleSettings = document.getElementById('btnToggleSettings');
+        const settingsBox = document.getElementById('settingsBox');
+        const inputApiKey = document.getElementById('inputApiKey');
+        const inputServerUrl = document.getElementById('inputServerUrl');
+        const btnSaveSettings = document.getElementById('btnSaveSettings');
 
-        // Fungsi Menutup Panel Overlay
-        function closeOverlay() {
-            if (window.Android && window.Android.closePanel) {
-                window.Android.closePanel();
-            } else {
-                document.body.style.display = 'none';
-            }
-        }
+        // Load saved settings
+        inputApiKey.value = localStorage.getItem('gemini_api_key') || '';
+        inputServerUrl.value = localStorage.getItem('server_backend_url') || '';
 
-        // Matikan Service Bubble sepenuhnya
-        function exitBubbleService() {
-            if (confirm("Matikan floating bubble ScreenMate AI?")) {
-                if (window.Android && window.Android.exitApp) {
-                    window.Android.exitApp();
-                } else {
-                    closeOverlay();
-                }
-            }
-        }
-
-        // Tutup saat klik di luar kartu (backdrop)
-        backdrop.addEventListener('click', (e) => {
-            if (e.target === backdrop) {
-                closeOverlay();
-            }
+        btnToggleSettings.addEventListener('click', () => {
+            settingsBox.style.display = settingsBox.style.display === 'flex' ? 'none' : 'flex';
         });
 
-        btnCloseTop.addEventListener('click', closeOverlay);
-        btnCloseBottom.addEventListener('click', closeOverlay);
-        btnStopApp.addEventListener('click', exitBubbleService);
+        btnSaveSettings.addEventListener('click', () => {
+            localStorage.setItem('gemini_api_key', inputApiKey.value.trim());
+            localStorage.setItem('server_backend_url', inputServerUrl.value.trim());
+            settingsBox.style.display = 'none';
+            alert('Pengaturan berhasil disimpan!');
+        });
 
         // Mode Selector Chips
         document.querySelectorAll('.mode-chip').forEach(chip => {
@@ -462,71 +503,204 @@
                 document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 currentMode = chip.getAttribute('data-mode');
+                modeBadge.innerText = currentMode;
+                btnAutoClick.style.display = 'none';
             });
         });
 
-        // Trigger Pilih File
-        btnUploadImage.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleImageSelected(e.target.files[0]);
+        // Tutup Panel Overlay
+        function closePanel() {
+            if (window.Android && window.Android.closePanel) {
+                window.Android.closePanel();
+            } else {
+                document.body.style.display = 'none';
+            }
+        }
+
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closePanel();
+        });
+        btnCloseTop.addEventListener('click', closePanel);
+        btnCloseBottom.addEventListener('click', closePanel);
+
+        // Hentikan Service
+        btnStopApp.addEventListener('click', () => {
+            if (confirm("Matikan floating bubble ScreenMate AI?")) {
+                if (window.Android && window.Android.exitApp) {
+                    window.Android.exitApp();
+                } else {
+                    closePanel();
+                }
             }
         });
 
-        function handleImageSelected(file) {
-            previewImg.src = URL.createObjectURL(file);
+        // 1. TEKAN TOMBOL ANALISIS LAYAR SEKARANG
+        btnScanScreen.addEventListener('click', () => {
+            btnAutoClick.style.display = 'none';
+            showLoading("Menangkap layar HP Anda...");
+
+            if (window.Android && window.Android.captureScreenNow) {
+                // Panggil fungsi native Android untuk tangkap layar tanpa dialog
+                window.Android.captureScreenNow(currentMode);
+            } else {
+                hideLoading();
+                alert("Jalankan di aplikasi Android ScreenMate AI.");
+            }
+        });
+
+        // 2. CALLBACK DARI ANDROID SAAT SCREENSHOT BERHASIL DIAMBIL
+        window.onScreenCaptured = function(base64Image, mode) {
+            currentBase64 = base64Image;
+            previewImg.src = "data:image/jpeg;base64," + base64Image;
             previewBox.style.display = 'block';
-            analyzeImage(file);
-        }
+            processAIAnalysis(base64Image, mode);
+        };
+
+        // 3. CALLBACK JIKA GAGAL TANGKAP LAYAR
+        window.onCaptureError = function(errorMsg) {
+            hideLoading();
+            resultContent.innerHTML = `<span style="color:#ef4444;">⚠️ [Gagal Tangkap Layar]:</span> ${errorMsg}<br><br><small style="color:#9ca3af;">Pastikan Layanan Aksesibilitas 'ScreenMate AI' sudah AKTIF di Pengaturan HP Anda.</small>`;
+        };
 
         btnRemovePreview.addEventListener('click', () => {
             previewBox.style.display = 'none';
             previewImg.src = '';
-            fileInput.value = '';
+            currentBase64 = null;
             btnAutoClick.style.display = 'none';
         });
 
-        async function analyzeImage(blob) {
-            showLoading(`Menganalisis soal (${currentMode})...`);
+        // 4. PROSES ANALISIS KE AI (DIRECT GEMINI API / BACKEND)
+        async function processAIAnalysis(base64Image, mode) {
+            showLoading(`Menganalisis soal (${mode}) dengan AI...`);
             
-            const formData = new FormData();
-            formData.append('screenshot', blob, 'screenshot.png');
-            formData.append('mode', currentMode);
+            const apiKey = localStorage.getItem('gemini_api_key');
+            const serverUrl = localStorage.getItem('server_backend_url');
+
+            // Susun prompt berdasarkan mode
+            let systemPrompt = "";
+            if (mode === 'Wordwall Assist') {
+                systemPrompt = `Analisis screenshot game kuis Wordwall ini secara teliti.
+1. Baca soal yang tertulis di bagian atas layar.
+2. Cari kartu pilihan jawaban yang BENAR.
+3. Tentukan koordinat titik tengah kartu yang benar dalam skala 0 sampai 1000:
+   - centerX: posisi horizontal (0 = paling kiri, 1000 = paling kanan)
+   - centerY: posisi vertikal (0 = paling atas, 1000 = paling bawah)
+4. Kembalikan HANYA format JSON murni tanpa markdown:
+{"question":"soal","answer":"jawaban benar","cardColor":"warna kartu","centerX":500,"centerY":750,"explanation":"alasan"}`;
+            } else if (mode === 'Google Docs') {
+                systemPrompt = `Ekstrak dan analisis teks dari Google Docs / dokumen pada gambar layar ini.
+1. Berikan ringkasan poin-poin utama isi dokumen.
+2. Jika ada pertanyaan atau instruksi di dokumen, berikan jawabannya secara langsung dan padat.`;
+            } else if (mode === 'Jelaskan Soal') {
+                systemPrompt = `Jelaskan materi dan langkah demi langkah penyelesaian soal pada gambar layar ini dengan bahasa yang sangat mudah dimengerti.`;
+            } else if (mode === 'Translate') {
+                systemPrompt = `Terjemahkan seluruh teks pada gambar layar ini ke Bahasa Indonesia yang akurat dan natural.`;
+            } else {
+                // Jawab Soal
+                systemPrompt = `Analisis soal pada gambar layar ini.
+1. Berikan [JAWABAN TEPAT]: (sebutkan opsi A/B/C/D/E jika pilihan ganda beserta teksnya).
+2. [PENJELASAN RINGKAS]: Rumus dan langkah pengerjaan singkat.
+3. [TINGKAT KEYAKINAN]: 100%`;
+            }
 
             try {
-                // Koneksi ke server lokal backend jika aktif
-                const res = await fetch('http://localhost:3000/api/analyze', {
+                // Jalur 1: Jika ada URL server backend
+                if (serverUrl) {
+                    const endpoint = mode === 'Wordwall Assist' ? `${serverUrl}/api/wordwall-assist` : `${serverUrl}/api/analyze`;
+                    const blob = await (await fetch("data:image/jpeg;base64," + base64Image)).blob();
+                    const fd = new FormData();
+                    fd.append('screenshot', blob, 'screen.jpg');
+                    fd.append('mode', mode);
+
+                    const res = await fetch(endpoint, { method: 'POST', body: fd });
+                    const d = await res.json();
+                    handleAiResponse(d, mode);
+                    return;
+                }
+
+                // Jalur 2: Direct Gemini API (Standar & Mandiri di HP)
+                if (!apiKey) {
+                    hideLoading();
+                    resultContent.innerHTML = `<span style="color:#f59e0b;">🔑 Masukkan Gemini API Key:</span><br>
+Klik ikon gerigi ⚙️ di pojok kanan atas, lalu masukkan Gemini API Key gratis Anda (didapatkan dari <a href="https://aistudio.google.com" target="_blank" style="color:#818cf8;">aistudio.google.com</a>) agar asisten bisa langsung menganalisis layar.`;
+                    settingsBox.style.display = 'flex';
+                    return;
+                }
+
+                // Panggil Gemini 2.5 Flash / 1.5 Flash via REST API
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                const bodyPayload = {
+                    contents: [{
+                        parts: [
+                            { inline_data: { mime_type: "image/jpeg", data: base64Image } },
+                            { text: systemPrompt }
+                        ]
+                    }]
+                };
+
+                const res = await fetch(apiUrl, {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyPayload)
                 });
 
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                
-                resultContent.innerHTML = formatAnalysis(data.analysis || 'Jawaban ditemukan.');
-                
-                if (data.clickX && data.clickY) {
-                    detectedCoordinates = { x: data.clickX, y: data.clickY };
-                    btnAutoClick.style.display = 'flex';
+                if (!res.ok) {
+                    const errJson = await res.json();
+                    throw new Error(errJson.error ? errJson.error.message : `HTTP ${res.status}`);
                 }
+
+                const data = await res.json();
+                const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
+                handleAiResponse({ analysis: rawText }, mode);
+
             } catch (err) {
-                resultContent.innerHTML = `<span style="color:#ef4444;">[Info Server]:</span> ${err.message}<br><small style="color:#9ca3af;">Pastikan server backend berjalan di port 3000, atau gunakan koneksi Wi-Fi yang sama dengan PC.</small>`;
-            } finally {
                 hideLoading();
+                resultContent.innerHTML = `<span style="color:#ef4444;">❌ [Error Analisis]:</span> ${err.message}<br><br><small style="color:#9ca3af;">Periksa API Key di tombol ⚙️ atau pastikan koneksi internet aktif.</small>`;
             }
         }
 
-        // Ketuk Otomatis via Accessibility Service Android
+        function handleAiResponse(data, mode) {
+            hideLoading();
+            let text = data.analysis || "";
+
+            if (mode === 'Wordwall Assist') {
+                try {
+                    let clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    let parsed = data.centerX ? data : JSON.parse(clean);
+                    
+                    if (parsed.centerX && parsed.centerY) {
+                        detectedCoords = {
+                            x: parsed.centerX / 1000,
+                            y: parsed.centerY / 1000
+                        };
+                        btnAutoClick.style.display = 'flex';
+                        btnAutoClick.innerHTML = `⚡ KETUK OTOMATIS: ${parsed.answer || 'Kartu Benar'}`;
+                    }
+
+                    resultContent.innerHTML = `🎯 <b>Jawaban:</b> ${parsed.answer || 'Terdeteksi'}<br>
+🎨 <b>Warna Kartu:</b> ${parsed.cardColor || '-'}<br>
+💡 <b>Alasan:</b> ${parsed.explanation || '-'}`;
+                    return;
+                } catch(e) {
+                    // Fallback jika tidak JSON murni
+                }
+            }
+
+            // Format jawaban biasa
+            resultContent.innerHTML = formatText(text);
+        }
+
+        // 5. EKSEKUSI AUTO-CLICK
         btnAutoClick.addEventListener('click', () => {
-            if (detectedCoordinates && window.Android && window.Android.performAutoClick) {
-                window.Android.performAutoClick(detectedCoordinates.x, detectedCoordinates.y);
+            if (detectedCoords && window.Android && window.Android.performAutoClick) {
+                window.Android.performAutoClick(detectedCoords.x, detectedCoords.y);
             }
         });
 
-        function formatAnalysis(text) {
-            if (!text) return 'Tidak ada teks analisis.';
-            return text
-                .replace(/\*\*([^*]+)\*\*/g, '<strong style="color: #818cf8;">$1</strong>')
+        function formatText(str) {
+            if (!str) return 'Tidak ada data.';
+            return str
+                .replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#818cf8;">$1</strong>')
                 .replace(/\n/g, '<br>');
         }
 

@@ -2,12 +2,15 @@ package com.screenmate;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +21,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
 
 public class FloatingService extends Service {
 
@@ -182,6 +187,71 @@ public class FloatingService extends Service {
         }
 
         @JavascriptInterface
+        public void openAccessibilitySettings() {
+            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void captureScreenNow(final String mode) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (!AutoClickService.isRunning()) {
+                    Toast.makeText(FloatingService.this, "Aktifkan Layanan Aksesibilitas 'ScreenMate AI' terlebih dahulu untuk tangkap layar & auto-click!", Toast.LENGTH_LONG).show();
+                    openAccessibilitySettings();
+                    return;
+                }
+
+                // Sembunyikan panel dan bubble sementara agar tangkapan layar bersih hanya menampilkan konten HP
+                FloatingService.this.closePanel();
+                floatingBubble.setVisibility(View.GONE);
+
+                // Berikan jeda 300ms agar UI hilang dari frame layar
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    AutoClickService.getInstance().captureScreen(new AutoClickService.ScreenshotListener() {
+                        @Override
+                        public void onSuccess(Bitmap bitmap) {
+                            try {
+                                // Kompres dan perkecil ukuran jika terlalu besar agar pengiriman cepat
+                                int width = bitmap.getWidth();
+                                int height = bitmap.getHeight();
+                                float maxDim = 1080f;
+                                if (width > maxDim || height > maxDim) {
+                                    float scale = Math.min(maxDim / width, maxDim / height);
+                                    width = Math.round(width * scale);
+                                    height = Math.round(height * scale);
+                                    bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                                }
+
+                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+                                byte[] byteArray = stream.toByteArray();
+                                final String base64Image = Base64.encodeToString(byteArray, Base64.NO_WRAP);
+
+                                new Handler(Looper.getMainLooper()).post(() -> {
+                                    floatingBubble.setVisibility(View.VISIBLE);
+                                    FloatingService.this.openPanel();
+                                    floatingPanel.evaluateJavascript("window.onScreenCaptured('" + base64Image + "', '" + mode + "');", null);
+                                });
+                            } catch (Exception e) {
+                                onError("Gagal encode gambar: " + e.getMessage());
+                            }
+                        }
+
+                        @Override
+                        public void onError(final String errorMsg) {
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                floatingBubble.setVisibility(View.VISIBLE);
+                                FloatingService.this.openPanel();
+                                floatingPanel.evaluateJavascript("window.onCaptureError('" + errorMsg.replace("'", "\\'") + "');", null);
+                            });
+                        }
+                    });
+                }, 300);
+            });
+        }
+
+        @JavascriptInterface
         public void performAutoClick(float normalizedX, float normalizedY) {
             if (AutoClickService.isRunning()) {
                 android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -199,6 +269,7 @@ public class FloatingService extends Service {
                     Toast.makeText(FloatingService.this,
                             "Aktifkan Layanan Aksesibilitas ScreenMate di Pengaturan HP terlebih dahulu!",
                             Toast.LENGTH_LONG).show();
+                    openAccessibilitySettings();
                 });
             }
         }
