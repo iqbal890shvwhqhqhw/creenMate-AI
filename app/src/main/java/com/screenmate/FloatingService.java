@@ -288,10 +288,20 @@ public class FloatingService extends Service {
                         if (redirectUrl != null) {
                             conn = (java.net.HttpURLConnection) new java.net.URL(redirectUrl).openConnection();
                             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0");
+                            conn.setConnectTimeout(15000);
+                            conn.setReadTimeout(20000);
+                            responseCode = conn.getResponseCode();
                         }
                     }
 
-                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                    final String finalHost = conn.getURL().getHost();
+                    final String contentType = conn.getContentType() != null ? conn.getContentType().toLowerCase() : "";
+
+                    java.io.InputStream inputStream = (responseCode >= 200 && responseCode < 400)
+                            ? conn.getInputStream()
+                            : conn.getErrorStream();
+
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream, "UTF-8"));
                     StringBuilder sb = new StringBuilder();
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -302,9 +312,20 @@ public class FloatingService extends Service {
 
                     final String rawText = sb.toString();
                     if (rawText.trim().isEmpty()) {
-                        throw new Exception("Dokumen kosong atau memerlukan login akun Google.");
+                        throw new Exception("Dokumen kosong, atau format dokumen tidak didukung.");
                     }
-                    if (rawText.contains("<html") && (rawText.contains("accounts.google.com") || rawText.contains("ServiceLogin") || rawText.contains("Sign in") || rawText.contains("signin"))) {
+
+                    // Export format=txt yang berhasil SELALU membalas text/plain. Kita hanya anggap
+                    // dokumen "terkunci/privat" jika benar-benar diarahkan ke halaman login Google
+                    // (host akhir accounts.google.com) atau server menolak akses (401/403) —
+                    // BUKAN sekadar karena isi dokumennya kebetulan memuat kata seperti "Sign in".
+                    boolean isPlainTextExport = contentType.contains("text/plain");
+                    boolean isLoginWall = !isPlainTextExport && (
+                            responseCode == 401 || responseCode == 403 ||
+                            (finalHost != null && finalHost.contains("accounts.google.com"))
+                    );
+
+                    if (isLoginWall) {
                         throw new Exception("Dokumen ini masih DIPRIVAT (hanya pemilik yang bisa akses). Ubah akses link Google Docs menjadi 'Siapa saja yang memiliki link' (Anyone with the link), atau buka dokumen di layar HP lalu klik tombol 'SCAN DOKUMEN DI LAYAR'.");
                     }
 

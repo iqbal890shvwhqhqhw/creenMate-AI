@@ -782,8 +782,9 @@ HASIL PENGERJAAN TUGAS DOKUMEN LENGKAP
 2. Kerjakan nomor per nomor secara urut (Soal No. 1, Soal No. 2, dst).
 3. Ringkas teks soal.
 4. [KUNCI JAWABAN TEPAT]: (Sebutkan opsi A/B/C/D/E jika pilihan ganda beserta kalimat jawabannya secara jelas).
-5. [PEMBAHASAN LENGKAP]: Uraikan langkah pengerjaan atau alasan ilmiah secara padat dan terperinci.
+5. [PEMBAHASAN LENGKAP]: Uraikan langkah pengerjaan atau alasan ilmiah secara jelas dan terperinci — JANGAN dijawab terlalu singkat, agar benar-benar mudah dipahami.
 6. Berikan rangkuman di akhir.
+7. DILARANG menggunakan sintaks kode LaTeX (jangan pakai tanda $, \\frac, \\cdot, \\times, \\text{}). Tulis rumus dengan cara biasa, contoh: "1/2", "x", "^2".
 
 ISI DOKUMEN GOOGLE DOCS:
 ${docText.substring(0, 25000)}`;
@@ -864,13 +865,24 @@ Tugas Anda adalah menganalisis pertanyaan pilihan ganda pada gambar layar ini (s
 4. Berikan output HANYA dengan format JSON murni:
 {"question":"soal yang tertera","answer":"opsi dan teks jawaban yang benar","centerX":250,"centerY":600,"explanation":"pembahasan singkat"}`;
             } else if (mode === 'Jelaskan Soal') {
-                systemPrompt = `Jelaskan materi dan langkah demi langkah penyelesaian soal pada gambar layar ini secara mendalam agar sangat mudah dipahami.`;
+                systemPrompt = `Anda adalah tutor yang sabar dan jago menjelaskan.
+Jelaskan materi dan cara penyelesaian soal pada gambar layar ini secara MENDALAM dan TERSTRUKTUR.
+
+Susun jawaban dengan format berikut:
+1. [Konsep Dasar]: Jelaskan konsep/teori yang mendasari soal ini dengan bahasa yang mudah dipahami.
+2. [Langkah Penyelesaian]: Uraikan langkah demi langkah cara mengerjakan soal ini secara detail dan rinci, jangan ada langkah yang dilompati.
+3. [Jawaban & Kesimpulan]: Sebutkan jawaban akhir yang benar beserta alasannya secara jelas.
+
+ATURAN PENULISAN:
+- DILARANG menggunakan sintaks kode LaTeX (jangan pakai tanda $, \\frac, \\cdot, \\times, \\text{}). Tulis rumus dengan cara biasa, contoh: "1/2", "x", "^2".
+- Gunakan bahasa Indonesia yang jelas dan rapi.
+- PENTING: Ini mode penjelasan mendalam, JANGAN menjawab terlalu singkat (jangan hanya 1-2 kalimat). Berikan penjelasan yang benar-benar lengkap seolah sedang mengajari seseorang dari nol.`;
             } else if (mode === 'Translate') {
                 systemPrompt = `Terjemahkan seluruh teks pada gambar layar ini ke Bahasa Indonesia yang akurat dan natural.`;
             } else {
                 systemPrompt = `Analisis soal pada gambar layar ini.
 1. [JAWABAN TEPAT]: Sebutkan opsi (A/B/C/D/E) beserta teks jawabannya secara jelas.
-2. [PEMBAHASAN RINGKAS]: Uraikan rumus atau langkah pengerjaan singkat.
+2. [PEMBAHASAN]: Uraikan rumus atau langkah pengerjaan secara jelas dan cukup rinci, jangan terlalu singkat.
 3. [TINGKAT KEYAKINAN]: 100%`;
             }
 
@@ -886,9 +898,14 @@ Tugas Anda adalah menganalisis pertanyaan pilihan ganda pada gambar layar ini (s
         function handleAiResponse(rawText, mode) {
             hideLoading();
 
-            // Ekstraksi data koordinat untuk Auto-Click (Berlaku untuk Auto-Jawab Forms & Wordwall)
-            const parsed = extractActionData(rawText);
-            
+            // Ekstraksi data koordinat untuk Auto-Click HANYA berlaku untuk mode yang memang
+            // meminta deteksi koordinat/jawaban pilihan ganda. Mode 'Jelaskan Soal' & 'Translate'
+            // selalu berupa teks penjelasan biasa — jika ikut di-parsing di sini, kata "jawaban"
+            // yang muncul di tengah paragraf penjelasan bisa salah terbaca sebagai hasil deteksi,
+            // sehingga seluruh penjelasan lengkap tertimpa jadi teks singkat "Dideteksi otomatis...".
+            const autoClickModes = ['Wordwall Assist', 'Auto-Jawab Forms', 'Jawab Soal', 'Google Docs'];
+            const parsed = autoClickModes.includes(mode) ? extractActionData(rawText) : null;
+
             if (parsed && (parsed.centerX || parsed.answer)) {
                 const cx = parsed.centerX || 350;
                 const cy = parsed.centerY || 600;
