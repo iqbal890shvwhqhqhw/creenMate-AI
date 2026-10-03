@@ -267,12 +267,24 @@ public class FloatingService extends Service {
             new Thread(() -> {
                 try {
                     String targetUrl = urlString.trim();
-                    // Konversi link Google Docs ke export format txt
-                    java.util.regex.Pattern docPattern = java.util.regex.Pattern.compile("/document/d/([a-zA-Z0-9-_]+)");
-                    java.util.regex.Matcher matcher = docPattern.matcher(targetUrl);
-                    if (matcher.find()) {
-                        String docId = matcher.group(1);
-                        targetUrl = "https://docs.google.com/document/d/" + docId + "/export?format=txt";
+
+                    // Link Google Forms (termasuk bentuk /formResponse dan /edit): ambil halaman
+                    // /viewform, karena di sanalah definisi soal & ID jawaban (FB_PUBLIC_LOAD_DATA_) berada.
+                    java.util.regex.Matcher formE = java.util.regex.Pattern
+                            .compile("/forms/d/e/([a-zA-Z0-9-_]+)").matcher(targetUrl);
+                    java.util.regex.Matcher formPlain = java.util.regex.Pattern
+                            .compile("/forms/d/([a-zA-Z0-9-_]+)").matcher(targetUrl);
+
+                    java.util.regex.Matcher docMatcher = java.util.regex.Pattern
+                            .compile("/document/d/([a-zA-Z0-9-_]+)").matcher(targetUrl);
+
+                    if (formE.find()) {
+                        targetUrl = "https://docs.google.com/forms/d/e/" + formE.group(1) + "/viewform";
+                    } else if (formPlain.find()) {
+                        targetUrl = "https://docs.google.com/forms/d/" + formPlain.group(1) + "/viewform";
+                    } else if (docMatcher.find()) {
+                        // Konversi link Google Docs ke export format txt
+                        targetUrl = "https://docs.google.com/document/d/" + docMatcher.group(1) + "/export?format=txt";
                     }
 
                     java.net.URL url = new java.net.URL(targetUrl);
@@ -304,9 +316,11 @@ public class FloatingService extends Service {
                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream, "UTF-8"));
                     StringBuilder sb = new StringBuilder();
                     String line;
+                    // Halaman Google Forms menaruh definisi soal (FB_PUBLIC_LOAD_DATA_) di akhir
+                    // dokumen, sekitar byte ke-93.000, jadi batas lama 60.000 selalu memotongnya.
                     while ((line = reader.readLine()) != null) {
                         sb.append(line).append("\n");
-                        if (sb.length() > 60000) break;
+                        if (sb.length() > 500000) break;
                     }
                     reader.close();
 
